@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoop Star Prototype</title>
+    <style>
+        body { margin: 0; background: #1a1a1a; color: white; font-family: sans-serif; text-align: center; }
+        #game-container { display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .controls { margin: 10px; background: #2a2a2a; padding: 15px; border-radius: 8px; }
+        canvas { background: #d2a679; border: 4px solid #8a5a36; border-radius: 4px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        select, input, button { padding: 8px; margin: 5px; border-radius: 4px; border: none; }
+        button { background: #ff6600; color: white; font-weight: bold; cursor: pointer; }
+        button:hover { background: #e05500; }
+        #yt-player { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>🏀 Hoop Star Sandbox</h1>
+        
+        <!-- Customization & Settings -->
+        <div class="controls">
+            <label>Jersey: <input type="color" id="jerseyColor" value="#ff0000"></label>
+            <label>Kicks: 
+                <select id="shoeModel">
+                    <option value="#ffffff">Air Force Proto (White)</option>
+                    <option value="#black">Proto 1s (Black)</option>
+                    <option value="#blue">Jumpman Zoom (Blue)</option>
+                    <option value="#neon">Future Volt (Neon)</option>
+                </select>
+            </label>
+            <label>Mode: 
+                <select id="gameMode">
+                    <option value="half">Half Court</option>
+                    <option value="full">Full Court</option>
+                </select>
+            </label>
+        </div>
+
+        <!-- Music Player -->
+        <div class="controls">
+            <input type="text" id="ytUrl" placeholder="Paste YouTube Video URL here">
+            <button onclick="loadMusic()">🎵 Play Court Beats</button>
+        </div>
+
+        <!-- Court Canvas -->
+        <canvas id="court" width="800" height="400"></canvas>
+        <p>Controls: Use <b>Arrow Keys</b> or <b>WASD</b> to move your player around the court.</p>
+    </div>
+
+    <!-- Hidden YouTube iframe API container -->
+    <div id="yt-player"></div>
+
+    <script>
+        // Game Engine Setup
+        const canvas = document.getElementById('court');
+        const ctx = canvas.getContext('2d');
+        
+        let player = { x: 400, y: 300, radius: 15, speed: 5 };
+        let keys = {};
+
+        // Inputs
+        const jerseyInput = document.getElementById('jerseyColor');
+        const shoeInput = document.getElementById('shoeModel');
+        const modeInput = document.getElementById('gameMode');
+
+        // Track Keyboard
+        window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+        window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+
+        function update() {
+            // Movement Logic
+            if (keys['arrowup'] || keys['w']) player.y -= player.speed;
+            if (keys['arrowdown'] || keys['s']) player.y += player.speed;
+            if (keys['arrowleft'] || keys['a']) player.x -= player.speed;
+            if (keys['arrowright'] || keys['d']) player.x += player.speed;
+
+            // Boundary Collisions
+            if (player.x < player.radius) player.x = player.radius;
+            if (player.x > canvas.width - player.radius) player.x = canvas.width - player.radius;
+            if (player.y < player.radius) player.y = player.radius;
+            if (player.y > canvas.height - player.radius) player.y = canvas.height - player.radius;
+        }
+
+        function draw() {
+            // Clear Court
+            ctx.fillStyle = '#d2a679'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Court Lines based on Mode
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 4;
+            
+            if (modeInput.value === 'full') {
+                // Center Line
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2, 0);
+                ctx.lineTo(canvas.width / 2, canvas.height);
+                ctx.stroke();
+                // Center Circle
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2, canvas.height / 2, 50, 0, Math.PI * 2);
+                ctx.stroke();
+            } else {
+                // Half Court Boundary line
+                ctx.beginPath();
+                ctx.moveTo(10, 0);
+                ctx.lineTo(10, canvas.height);
+                ctx.stroke();
+            }
+
+            // Draw Three-Point Arc (Right Side Hoop)
+            ctx.beginPath();
+            ctx.arc(canvas.width, canvas.height / 2, 120, Math.PI * 0.5, Math.PI * 1.5);
+            ctx.stroke();
+
+            // Draw Key/Paint
+            ctx.fillStyle = '#bc8f60';
+            ctx.fillRect(canvas.width - 100, (canvas.height/2) - 50, 100, 100);
+            ctx.strokeRect(canvas.width - 100, (canvas.height/2) - 50, 100, 100);
+
+            // Draw Backboard and Hoop
+            ctx.fillStyle = '#000';
+            ctx.fillRect(canvas.width - 15, (canvas.height/2) - 30, 5, 60);
+            ctx.beginPath();
+            ctx.strokeStyle = '#ff6600';
+            ctx.arc(canvas.width - 25, canvas.height / 2, 12, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw Player Customized Shoes (Left/Right rectangles under player)
+            ctx.fillStyle = shoeInput.value;
+            ctx.fillRect(player.x - 12, player.y + 8, 8, 6);
+            ctx.fillRect(player.x + 4, player.y + 8, 8, 6);
+
+            // Draw Player Body (Jersey)
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctx.fillStyle = jerseyInput.value;
+            ctx.fill();
+            ctx.strokeStyle = '#000000';
+            ctx.stroke();
+
+            // Draw Player Head
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius * 0.6, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffdbac';
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // YouTube Audio Streaming Logic
+        let ytPlayer;
+        function onYouTubeIframeAPIReady() {
+            ytPlayer = new YT.Player('yt-player', {
+                height: '0',
+                width: '0',
+                videoId: '',
+                playerVars: { 'autoplay': 1, 'controls': 0 }
+            });
+        }
+
+        function loadMusic() {
+            const url = document.getElementById('ytUrl').value;
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            
+            if (match && match[2].length === 11) {
+                const videoId = match[2];
+                if (ytPlayer && ytPlayer.loadVideoById) {
+                    ytPlayer.loadVideoById(videoId);
+                } else {
+                    alert("Player preparing. Please try again in a second.");
+                }
+            } else {
+                alert("Please enter a valid YouTube URL.");
+            }
+        }
+
+        // Load YouTube API script dynamically
+        const tag = document.createElement('script');
+        tag.src = "https://youtube.com";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        // Start Game
+        gameLoop();
+    </script>
+</body>
+</html>
