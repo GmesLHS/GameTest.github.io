@@ -3,148 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom Hoopz Online 2D</title>
+    <title>NEO-HOOPZ 2026</title>
     <script src="https://jsdelivr.net"></script>
     <style>
-        body { margin: 0; background: #111; font-family: sans-serif; color: white; text-align: center; }
-        #ui-container { padding: 10px; background: #222; }
-        input, select, button { padding: 8px; margin: 5px; border-radius: 4px; border: none; }
-        button { background: #ff9900; font-weight: bold; cursor: pointer; color: black; }
-        #game-container { display: flex; justify-content: center; margin-top: 10px; }
+        body { margin: 0; background: #05050a; font-family: 'Courier New', Courier, monospace; color: #00ffff; text-align: center; overflow: hidden; }
+        
+        /* 2026 Cyber Menu Theme */
+        #home-screen {
+            position: absolute; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #0d0116 0%, #030312 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 10; transition: opacity 0.5s ease;
+            box-shadow: inset 0 0 100px rgba(0, 255, 255, 0.2);
+        }
+        
+        /* 6'7 Kid Bobbing Animation */
+        #kid-avatar {
+            position: absolute; top: 20px; left: 20px;
+            width: 90px; height: 130px;
+            background: #111; border: 2px solid #ff007f; border-radius: 8px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            animation: bobbing 3s ease-in-out infinite;
+            box-shadow: 0 0 15px #ff007f;
+        }
+        @keyframes bobbing {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(12px); }
+            100% { transform: translateY(0px); }
+        }
+        .kid-head { width: 30px; height: 30px; background: #ffcc99; border-radius: 50%; position: relative; }
+        .kid-head::after { content: '🕶️'; position: absolute; top: 2px; left: 4px; font-size: 14px; }
+        .kid-jersey { width: 45px; height: 60px; background: #ff007f; margin-top: 5px; border-radius: 4px 4px 0 0; position: relative; color: white; font-weight: bold; font-size: 12px; line-height: 40px;}
+        .kid-label { font-size: 10px; color: #ff007f; margin-top: 4px; font-weight: bold; text-shadow: 0 0 5px #ff007f;}
+
+        /* Title Graphic */
+        .title-container { text-align: center; margin-bottom: 30px; }
+        .main-title { font-size: 64px; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px #00ffff, 0 0 40px #ff007f; margin: 0; letter-spacing: 4px; }
+        .sub-title { font-size: 18px; color: #ff007f; letter-spacing: 8px; text-transform: uppercase; margin-top: 5px; }
+
+        /* UI Panels */
+        .customizer-box { background: rgba(255, 255, 255, 0.03); border: 1px solid #00ffff; padding: 25px; border-radius: 12px; box-shadow: 0 0 30px rgba(0,255,255,0.1); width: 450px; }
+        .input-group { margin: 15px 0; text-align: left; display: flex; justify-content: space-between; align-items: center; }
+        label { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #00ffff; }
+        input, select { background: #111; border: 1px solid #ff007f; color: #fff; padding: 10px; border-radius: 4px; width: 60%; font-family: monospace; outline: none; }
+        input:focus, select:focus { border-color: #00ffff; box-shadow: 0 0 10px #00ffff; }
+        
+        .start-btn { width: 100%; background: #ff007f; color: white; border: none; padding: 15px; font-size: 20px; font-weight: bold; font-family: monospace; cursor: pointer; border-radius: 4px; margin-top: 15px; text-shadow: 0 0 5px #fff; box-shadow: 0 0 15px #ff007f; transition: 0.2s; }
+        .start-btn:hover { background: #00ffff; color: #000; box-shadow: 0 0 25px #00ffff; }
+
+        /* Active Game Layer */
+        #game-layout { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        #game-container { border: 4px solid #00ffff; box-shadow: 0 0 30px rgba(0, 255, 255, 0.3); border-radius: 8px; }
+        .game-controls-tip { margin-top: 15px; color: #ff007f; font-size: 14px; text-shadow: 0 0 5px rgba(255,0,127,0.3); }
     </style>
 </head>
 <body>
 
-    <div id="ui-container">
-        <h3>2D Character & Jukebox Customizer</h3>
-        <label>Shoe Model: </label>
-        <select id="shoeSelect">
-            <option value="jordan1">Air Jordan 1</option>
-            <option value="kobe6">Kobe 6 Grinch</option>
-            <option value="lebron20">LeBron 20</option>
-            <option value="curry10">Curry 10</option>
-        </select>
+    <!-- 2026 THEMED HOME SCREEN MENU -->
+    <div id="home-screen">
+        <!-- 6'7 Kid Interactive Floating Widget -->
+        <div id="kid-avatar">
+            <div class="kid-head"></div>
+            <div class="kid-jersey">6'7</div>
+            <div class="kid-label">PROSPECT</div>
+        </div>
 
-        <label>Court Size: </label>
-        <select id="courtSelect">
-            <option value="half">Half Court</option>
-            <option value="full">Full Court</option>
-        </select>
+        <div class="title-container">
+            <h1 class="main-title">CYBER HOOPZ</h1>
+            <div class="sub-title">Season 2026 Edition</div>
+        </div>
 
-        <input type="text" id="ytUrl" placeholder="Paste YouTube URL here">
-        <button onclick="loadMusic()">Play Music</button>
-        <p style="font-size: 12px; color: #aaa; margin: 5px;">Controls: Left/Right Arrows = Move | Up Arrow = Jump | <strong>C Key = Summon/Call Ball</strong></p>
+        <div class="customizer-box">
+            <div class="input-group">
+                <label>Drip / Shoes</label>
+                <select id="shoeSelect">
+                    <option value="jordan1">Air Jordan 1 Retro</option>
+                    <option value="kobe6">Kobe 6 "Grinch"</option>
+                    <option value="lebron20">LeBron Next-Gen</option>
+                    <option value="curry10">Curry 10 Cyber</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Court Setup</label>
+                <select id="courtSelect">
+                    <option value="half">Blacktop Half Court</option>
+                    <option value="full">Arena Full Court</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Jukebox (YT)</label>
+                <input type="text" id="ytUrl" placeholder="Paste YouTube link...">
+            </div>
+
+            <button class="start-btn" onclick="startGame()">ENTER COURT</button>
+        </div>
     </div>
 
-    <div id="game-container"></div>
+    <!-- ACTIVE GAME WORLD -->
+    <div id="game-layout">
+        <div id="game-container"></div>
+        <div class="game-controls-tip">
+            ← → Move Avatar | ↑ Jump Sky High | <strong>[ C ] Key</strong> Respawns Ball in Hand
+        </div>
+    </div>
+    
     <div id="youtube-audio"></div>
 
     <script>
-        // YouTube Audio Setup
         let player;
-        function loadMusic() {
+        let selectedShoeColor = 0x00aaff;
+
+        // Transitions home screen to live gameplay frame
+        function startGame() {
+            // Load Music if URL is provided
             const url = document.getElementById('ytUrl').value;
-            let videoId = "";
-            if(url.includes('v=')) { videoId = url.split('v=')[1].split('&')[0]; } 
-            else if(url.includes('youtu.be/')) { videoId = url.split('youtu.be/')[1].split('?')[0]; }
-            
-            if (!videoId) return alert("Invalid YouTube URL");
-            
-            if (player) { player.loadVideoById(videoId); } 
-            else {
-                let tag = document.createElement('script');
-                tag.src = "https://youtube.com";
-                document.head.appendChild(tag);
-                window.onYouTubeIframeAPIReady = () => {
-                    player = new YT.Player('youtube-audio', {
-                        height: '0', width: '0', videoId: videoId,
-                        events: { 'onReady': (e) => e.target.playVideo() }
-                    });
-                };
+            if (url) {
+                let videoId = url.split('v=')[1]?.split('&')[0] || url.split('youtu.be/')[1]?.split('?')[0];
+                if (videoId) {
+                    let tag = document.createElement('script');
+                    tag.src = "https://youtube.com";
+                    document.head.appendChild(tag);
+                    window.onYouTubeIframeAPIReady = () => {
+                        player = new YT.Player('youtube-audio', {
+                            height: '0', width: '0', videoId: videoId,
+                            events: { 'onReady': (e) => e.target.playVideo() }
+                        });
+                    };
+                }
             }
+
+            // Sync shoe selection colors right before generating the sprite
+            const shoe = document.getElementById('shoeSelect').value;
+            if(shoe === 'kobe6') selectedShoeColor = 0x39ff14;
+            if(shoe === 'jordan1') selectedShoeColor = 0xcc0000;
+            if(shoe === 'lebron20') selectedShoeColor = 0xff00ff;
+            if(shoe === 'curry10') selectedShoeColor = 0xffcc00;
+
+            // Swap interface panels smoothly
+            document.getElementById('home-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('home-screen').style.display = 'none';
+                document.getElementById('game-layout').style.display = 'flex';
+                initPhaserGame(); // Fires up the game system
+            }, 500);
         }
 
-        // Pure 2D Game Settings
-        const config = {
-            type: Phaser.AUTO,
-            width: 800,
-            height: 500,
-            parent: 'game-container',
-            physics: { 
-                default: 'arcade', 
-                arcade: { gravity: { y: 600 }, debug: false } 
-            },
-            scene: { preload: preload, create: create, update: update }
-        };
+        // Complete 2D Phaser Build Engine
+        function initPhaserGame() {
+            const config = {
+                type: Phaser.AUTO,
+                width: 800,
+                height: 500,
+                parent: 'game-container',
+                physics: { 
+                    default: 'arcade', 
+                    arcade: { gravity: { y: 650 }, debug: false } 
+                },
+                scene: { create: create, update: update }
+            };
 
-        const game = new Phaser.Game(config);
-        let playerSprite, ball, cursors, keyC, hoop;
+            const game = new Phaser.Game(config);
+            let playerSprite, ball, cursors, keyC, hoop;
 
-        function preload() {}
+            function create() {
+                // Hardwood Arena Court Drawing
+                let platforms = this.physics.add.staticGroup();
+                let floor = this.add.rectangle(400, 480, 800, 40, 0x1a1a2e); // Deep cyber wood hue
+                platforms.add(floor);
+                
+                // Court boundaries neon accents
+                this.add.rectangle(400, 462, 800, 4, 0x00ffff); 
 
-        function create() {
-            // Draw 2D Hardwood Floor Look
-            let platforms = this.physics.add.staticGroup();
-            let floor = this.add.rectangle(400, 480, 800, 40, 0xd2a679); // Wood color
-            platforms.add(floor);
+                // Hoop setup
+                this.add.rectangle(760, 200, 8, 90, 0xffffff); // Neon White Backboard
+                hoop = this.add.rectangle(725, 230, 42, 8, 0xff007f); // Hot Pink Rim Rim
+                this.physics.add.existing(hoop, true);
 
-            // Draw a simple 2D Backboard and Rim Outline
-            this.add.rectangle(750, 200, 10, 80, 0xffffff); // Backboard
-            hoop = this.add.rectangle(725, 230, 40, 8, 0xff5500); // Rim
-            this.physics.add.existing(hoop, true);
+                // Initialize customized avatar 
+                playerSprite = this.add.rectangle(150, 400, 36, 75, selectedShoeColor);
+                this.physics.add.existing(playerSprite);
+                playerSprite.body.setCollideWorldBounds(true);
 
-            // 2D Player Box Sprite
-            playerSprite = this.add.rectangle(100, 400, 40, 70, 0x00aaff);
-            this.physics.add.existing(playerSprite);
-            playerSprite.body.setCollideWorldBounds(true);
+                // Basketball setup
+                ball = this.add.circle(400, 200, 13, 0xffaa00);
+                this.physics.add.existing(ball);
+                ball.body.setCollideWorldBounds(true);
+                ball.body.setBounce(0.75);
 
-            // 2D Ball Circle Sprite
-            ball = this.add.circle(400, 200, 12, 0xe65c00);
-            this.physics.add.existing(ball);
-            ball.body.setCollideWorldBounds(true);
-            ball.body.setBounce(0.75); // Makes the ball bounce nicely on the 2D floor
+                // Interactive 2D World Colliders
+                this.physics.add.collider(playerSprite, platforms);
+                this.physics.add.collider(ball, platforms);
+                this.physics.add.collider(playerSprite, ball);
+                this.physics.add.overlap(ball, hoop, scorePoints, null, this);
 
-            // Core 2D Collision Mapping
-            this.physics.add.collider(playerSprite, platforms);
-            this.physics.add.collider(ball, platforms);
-            this.physics.add.collider(playerSprite, ball);
-            this.physics.add.overlap(ball, hoop, scorePoints, null, this);
-
-            // Controls configuration
-            cursors = this.input.keyboard.createCursorKeys();
-            keyC = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
-
-            // Customizer Shoe Colors
-            document.getElementById('shoeSelect').addEventListener('change', (e) => {
-                if(e.target.value === 'kobe6') playerSprite.setFillStyle(0x39ff14); // Grinch Green
-                if(e.target.value === 'jordan1') playerSprite.setFillStyle(0xcc0000); // Bred Red
-                if(e.target.value === 'lebron20') playerSprite.setFillStyle(0xff00ff); // Pink
-                if(e.target.value === 'curry10') playerSprite.setFillStyle(0xffcc00); // Golden State Yellow
-            });
-        }
-
-        function update() {
-            // Horizontal 2D Player Movement
-            if (cursors.left.isDown) { playerSprite.body.setVelocityX(-250); }
-            else if (cursors.right.isDown) { playerSprite.body.setVelocityX(250); }
-            else { playerSprite.body.setVelocityX(0); }
-
-            // Vertical 2D Jumping Mechanics
-            if (cursors.up.isDown && playerSprite.body.touching.down) { playerSprite.body.setVelocityY(-420); }
-
-            // **C Key Feature**: Instant Ball Summon to Player's Hands
-            if (Phaser.Input.Keyboard.JustDown(keyC)) {
-                ball.setPosition(playerSprite.x, playerSprite.y - 50);
-                ball.body.setVelocity(0, 0); // Stops previous momentum completely
+                // Key tracking hooks
+                cursors = this.input.keyboard.createCursorKeys();
+                keyC = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
             }
-        }
 
-            function scorePoints(ballSim, net) {
-            ball.setPosition(400, 100);
-            ball.body.setVelocity(0, 0);
-            // Brief visual notification on the 2D screen instead of an annoying alert pop-up
-            let scoreText = this.add.text(350, 150, 'BUCKET!', { fontSize: '32px', fill: '#ff9900', fontWeight: 'bold' });
-            this.time.delayedCall(1000, () => { scoreText.destroy(); });
+            function update() {
+                if (cursors.left.isDown) { playerSprite.body.setVelocityX(-260); }
+                else if (cursors.right.isDown) { playerSprite.body.setVelocityX(260); }
+                else { playerSprite.body.setVelocityX(0); }
+
+                if (cursors.up.isDown && playerSprite.body.touching.down) { playerSprite.body.setVelocityY(-440); }
+
+                // The 'C' Magic keybind logic triggers ball reset instantly
+                if (Phaser.Input.Keyboard.JustDown(keyC)) {
+                    ball.setPosition(playerSprite.x, playerSprite.y - 55);
+                    ball.body.setVelocity(0, 0);
+                }
+            }
+
+            function scorePoints(ballObj, rimObj) {
+                ballObj.setPosition(400, 100);
+                ballObj.body.setVelocity(0, 0);
+                
+                let scoreText = this.add.text(320, 140, 'SLAM DUNK!', { 
+                    fontSize: '36px', 
+                    fill: '#00ffff', 
+                    fontFamily: 'monospace',
+                    fontWeight: 'bold' 
+                });
+                this.time.delayedCall(800, () => { scoreText.destroy(); });
+            }
         }
     </script>
 </body>
