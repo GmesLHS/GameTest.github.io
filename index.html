@@ -3,71 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEO-HOOPZ 2026</title>
-    <script src="https://jsdelivr.net"></script>
+    <title>CYBER HOOPZ 2026</title>
+    <!-- Phaser Engine Injection via Cloudflare CDN -->
+    <script src="https://cloudflare.com"></script>
     <style>
-        body { margin: 0; background: #05050a; font-family: 'Courier New', Courier, monospace; color: #00ffff; text-align: center; overflow: hidden; }
+        * { box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #05050a; font-family: 'Courier New', Courier, monospace; color: #00ffff; overflow: hidden; select-start: none; }
         
-        /* 2026 Cyber Menu Theme */
-        #home-screen {
-            position: absolute; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #0d0116 0%, #030312 100%);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 10; transition: opacity 0.5s ease;
-            box-shadow: inset 0 0 100px rgba(0, 255, 255, 0.2);
-        }
+        /* Interactive Layer Layouts */
+        .screen-container { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; background: linear-gradient(135deg, #0d0116 0%, #030312 100%); transition: opacity 0.4s ease; }
         
-        /* 6'7 Kid Bobbing Animation */
-        #kid-avatar {
-            position: absolute; top: 20px; left: 20px;
-            width: 90px; height: 130px;
-            background: #111; border: 2px solid #ff007f; border-radius: 8px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            animation: bobbing 3s ease-in-out infinite;
-            box-shadow: 0 0 15px #ff007f;
-        }
-        @keyframes bobbing {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(12px); }
-            100% { transform: translateY(0px); }
-        }
+        /* 6'7 Kid Bobbing Widget Overlay */
+        #kid-avatar { position: absolute; top: 20px; left: 20px; width: 90px; height: 130px; background: #111; border: 2px solid #ff007f; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: bobbing 3s ease-in-out infinite; box-shadow: 0 0 15px #ff007f; z-index: 100; }
+        @keyframes bobbing { 0% { transform: translateY(0px); } 50% { transform: translateY(12px); } 100% { transform: translateY(0px); } }
         .kid-head { width: 30px; height: 30px; background: #ffcc99; border-radius: 50%; position: relative; }
         .kid-head::after { content: '🕶️'; position: absolute; top: 2px; left: 4px; font-size: 14px; }
-        .kid-jersey { width: 45px; height: 60px; background: #ff007f; margin-top: 5px; border-radius: 4px 4px 0 0; position: relative; color: white; font-weight: bold; font-size: 12px; line-height: 40px;}
-        .kid-label { font-size: 10px; color: #ff007f; margin-top: 4px; font-weight: bold; text-shadow: 0 0 5px #ff007f;}
+        .kid-jersey { width: 45px; height: 60px; background: #ff007f; margin-top: 5px; border-radius: 4px 4px 0 0; text-align: center; color: white; font-weight: bold; font-size: 12px; line-height: 40px; }
+        .kid-label { font-size: 10px; color: #ff007f; margin-top: 4px; font-weight: bold; text-shadow: 0 0 5px #ff007f; }
 
-        /* Title Graphic */
-        .title-container { text-align: center; margin-bottom: 30px; }
-        .main-title { font-size: 64px; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px #00ffff, 0 0 40px #ff007f; margin: 0; letter-spacing: 4px; }
-        .sub-title { font-size: 18px; color: #ff007f; letter-spacing: 8px; text-transform: uppercase; margin-top: 5px; }
+        /* Dynamic Loading Screen View */
+        #loading-screen { z-index: 40; }
+        .cyber-loader-bar { width: 300px; height: 8px; background: #111; border: 1px solid #00ffff; border-radius: 4px; margin-top: 20px; overflow: hidden; position: relative; }
+        .cyber-loader-progress { width: 0%; height: 100%; background: #ff007f; box-shadow: 0 0 10px #ff007f; transition: width 0.1s linear; }
 
-        /* UI Panels */
-        .customizer-box { background: rgba(255, 255, 255, 0.03); border: 1px solid #00ffff; padding: 25px; border-radius: 12px; box-shadow: 0 0 30px rgba(0,255,255,0.1); width: 450px; }
-        .input-group { margin: 15px 0; text-align: left; display: flex; justify-content: space-between; align-items: center; }
-        label { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #00ffff; }
-        input, select { background: #111; border: 1px solid #ff007f; color: #fff; padding: 10px; border-radius: 4px; width: 60%; font-family: monospace; outline: none; }
-        input:focus, select:focus { border-color: #00ffff; box-shadow: 0 0 10px #00ffff; }
+        /* Title Vector Headers */
+        .title-container { text-align: center; margin-bottom: 20px; }
+        .main-title { font-size: 52px; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px #00ffff, 0 0 40px #ff007f; margin: 0; letter-spacing: 4px; }
+        .sub-title { font-size: 14px; color: #ff007f; letter-spacing: 6px; text-transform: uppercase; margin-top: 5px; }
+
+        /* Setup Panel Selection Box */
+        .customizer-box { background: rgba(255, 255, 255, 0.02); border: 1px solid #00ffff; padding: 20px; border-radius: 12px; box-shadow: 0 0 30px rgba(0,255,255,0.1); width: 480px; max-width: 95%; text-align: center; }
+        .input-group { margin: 12px 0; display: flex; justify-content: space-between; align-items: center; }
+        label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #00ffff; }
+        input, select { background: #111; border: 1px solid #ff007f; color: #fff; padding: 8px; border-radius: 4px; width: 55%; font-family: monospace; outline: none; }
         
-        .start-btn { width: 100%; background: #ff007f; color: white; border: none; padding: 15px; font-size: 20px; font-weight: bold; font-family: monospace; cursor: pointer; border-radius: 4px; margin-top: 15px; text-shadow: 0 0 5px #fff; box-shadow: 0 0 15px #ff007f; transition: 0.2s; }
-        .start-btn:hover { background: #00ffff; color: #000; box-shadow: 0 0 25px #00ffff; }
+        /* Action Execution Controls */
+        .action-btn { width: 100%; background: #ff007f; color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; font-family: monospace; cursor: pointer; border-radius: 4px; margin-top: 10px; text-shadow: 0 0 5px #fff; box-shadow: 0 0 15px #ff007f; }
+        .action-btn:hover { background: #00ffff; color: #000; box-shadow: 0 0 25px #00ffff; }
 
-        /* Active Game Layer */
-        #game-layout { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-        #game-container { border: 4px solid #00ffff; box-shadow: 0 0 30px rgba(0, 255, 255, 0.3); border-radius: 8px; }
-        .game-controls-tip { margin-top: 15px; color: #ff007f; font-size: 14px; text-shadow: 0 0 5px rgba(255,0,127,0.3); }
+        /* Mode Selection Framework Layout */
+        #mode-screen { z-index: 20; display: none; }
+        .modes-grid { display: grid; grid-template-columns: 1fr; gap: 12px; width: 100%; margin-top: 15px; }
+        .mode-card { border: 1px solid #ff007f; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 6px; cursor: pointer; text-align: left; transition: 0.2s; position: relative; }
+        .mode-card:hover { border-color: #00ffff; box-shadow: 0 0 15px rgba(0,255,255,0.3); background: rgba(0,255,255,0.05); }
+        .mode-card h4 { margin: 0 0 5px 0; color: #00ffff; text-transform: uppercase; }
+        .mode-card p { margin: 0; font-size: 11px; color: #aaa; }
+
+        /* Matchmaking Radar Screen HUD */
+        #matchmaking-screen { z-index: 30; display: none; text-align: center; }
+        .radar-pulse { width: 80px; height: 80px; border: 2px solid #00ffff; border-radius: 50%; margin: 25px auto; position: relative; animation: pulse 1.5s infinite ease-out; }
+        @keyframes pulse { 0% { transform: scale(0.6); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
+
+        /* Dynamic Game View Layer HUD */
+        #game-layout { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; position: relative; }
+        #game-container { border: 3px solid #00ffff; box-shadow: 0 0 30px rgba(0, 255, 255, 0.2); border-radius: 8px; background: #000; width: 800px; height: 500px; }
+        .game-controls-tip { margin-top: 12px; color: #ff007f; font-size: 13px; text-shadow: 0 0 5px rgba(255,0,127,0.3); text-align: center; }
+        
+        /* Training Control Panel Widget Overlay */
+        #training-hud { position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.85); border: 1px solid #ff007f; padding: 10px; border-radius: 6px; display: none; flex-direction: column; gap: 5px; z-index: 50; }
+        .hud-btn { background: #00ffff; color: #000; font-family: monospace; border: none; padding: 6px 12px; font-weight: bold; cursor: pointer; font-size: 11px; border-radius: 3px; }
+        .hud-btn:hover { background: #ff007f; color: #fff; }
     </style>
 </head>
 <body>
 
-    <!-- 2026 THEMED HOME SCREEN MENU -->
-    <div id="home-screen">
-        <!-- 6'7 Kid Interactive Floating Widget -->
-        <div id="kid-avatar">
-            <div class="kid-head"></div>
-            <div class="kid-jersey">6'7</div>
-            <div class="kid-label">PROSPECT</div>
-        </div>
+    <!-- 6'7 Kid Floating Asset Indicator -->
+    <div id="kid-avatar">
+        <div class="kid-head"></div>
+        <div class="kid-jersey">6'7</div>
+        <div class="kid-label">PROSPECT</div>
+    </div>
 
+    <!-- LAYER 1: NEON LOADING ENGINE SCREEN -->
+    <div id="loading-screen" class="screen-container">
+        <div class="title-container">
+            <h1 class="main-title">CYBER HOOPZ</h1>
+            <div class="sub-title">SYSTEM INITIALIZATION</div>
+        </div>
+        <div class="cyber-loader-bar">
+            <div id="loading-progress" class="cyber-loader-progress"></div>
+        </div>
+        <p id="loading-text" style="font-size: 11px; margin-top: 10px; color: #ff007f;">LOADING COURT GRID [0%]</p>
+    </div>
+
+    <!-- LAYER 2: INTERACTIVE DECK GEAR CONFIGURATOR -->
+    <div id="home-screen" class="screen-container" style="display: none;">
         <div class="title-container">
             <h1 class="main-title">CYBER HOOPZ</h1>
             <div class="sub-title">Season 2026 Edition</div>
@@ -83,50 +103,118 @@
                     <option value="curry10">Curry 10 Cyber</option>
                 </select>
             </div>
-
             <div class="input-group">
-                <label>Court Setup</label>
-                <select id="courtSelect">
-                    <option value="half">Blacktop Half Court</option>
-                    <option value="full">Arena Full Court</option>
-                </select>
+                <label>Jukebox (YT URL)</label>
+                <input type="text" id="ytUrl" placeholder="Paste music loop link...">
             </div>
-
-            <div class="input-group">
-                <label>Jukebox (YT)</label>
-                <input type="text" id="ytUrl" placeholder="Paste YouTube link...">
-            </div>
-
-            <button class="start-btn" onclick="startGame()">ENTER COURT</button>
+            <button class="action-btn" onclick="goToModes()">NEXT: SELECT MODE</button>
         </div>
     </div>
 
-    <!-- ACTIVE GAME WORLD -->
+    <!-- LAYER 3: 2026 MODE DISTRIBUTION BRANCH -->
+    <div id="mode-screen" class="screen-container">
+        <div class="title-container">
+            <h1 class="main-title">SELECT MATCH</h1>
+            <div class="sub-title">CHOOSE FIELD OF PLAY</div>
+        </div>
+        <div class="customizer-box">
+            <div class="modes-grid">
+                <div class="mode-card" onclick="launchGameMode('1v1-ai')">
+                    <h4>1) Solo 1v1 vs Simulated AI</h4>
+                    <p>Test your step-back mechanics against a defensive android script.</p>
+                </div>
+                <div class="mode-card" onclick="launchGameMode('1v1-real')">
+                    <h4>2) Ranked 1v1 Matchmaking (PvP)</h4>
+                    <p>Search global server nets for active matching opponents.</p>
+                </div>
+                <div class="mode-card" onclick="launchGameMode('comp-5v5')">
+                    <h4>3) COMP Pro-Am 5v5 Arena Match</h4>
+                    <p>Full-scale team strategy deployment. Simulated AI engine loadouts.</p>
+                </div>
+                <div class="mode-card" onclick="launchGameMode('training')">
+                    <h4>4) Prototype Training Facility Room</h4>
+                    <p>Open court sandbox gym. Spawn or clear target bots instantly on command.</p>
+                </div>
+            </div>
+            <button class="action-btn" style="background:#333; box-shadow:none; margin-top:15px;" onclick="backToCustomizer()">← BACK TO GEAR</button>
+        </div>
+    </div>
+
+    <!-- LAYER 4: ONLINE MATCH SEARCH OVERLAY HUD -->
+    <div id="matchmaking-screen" class="screen-container">
+        <div class="radar-pulse"></div>
+        <h3 style="color: #00ffff; letter-spacing: 2px; margin: 10px 0;">Search For a Player please stand By!</h3>
+        <p style="color: #ff007f; font-size: 12px;" id="matchmaking-timer">Ping tracking: active...</p>
+        <button class="action-btn" style="width: auto; padding: 10px 20px; background: #222; box-shadow: none; border: 1px solid #ff007f; margin-top: 20px;" onclick="cancelMatchmaking()">CANCEL SEARCH</button>
+    </div>
+
+    <!-- LAYER 5: MAIN LIVE GAME CORE RUNTIME VIEWPORT -->
     <div id="game-layout">
         <div id="game-container"></div>
         <div class="game-controls-tip">
-            ← → Move Avatar | ↑ Jump Sky High | <strong>[ C ] Key</strong> Respawns Ball in Hand
+            ← → Move Dribbler | ↑ Sky Hook Jump | <strong>[ C ] Key</strong> Call Ball to Hands
+        </div>
+        <!-- Contextual Widget Overlay box reserved for Sandbox Gym Room -->
+        <div id="training-hud">
+            <span style="font-size: 10px; color: #ff007f; font-weight: bold; margin-bottom: 2px;">SANDBOX TOOL</span>
+            <button class="hud-btn" onclick="triggerTrainerSpawn()">SPAWN BOT AI</button>
+            <button class="hud-btn" style="background:#ff007f; color:#fff;" onclick="triggerTrainerClear()">CLEAR BOTS</button>
         </div>
     </div>
     
-    <div id="youtube-audio"></div>
+    <!-- Hidden Youtube Stream Receiver Mount Point -->
+    <div id="youtube-audio" style="position:absolute; top:-9999px; left:-9999px;"></div>
 
     <script>
-        let player;
+        // Global Game Configuration Values
+        let activeGameMode = "";
         let selectedShoeColor = 0x00aaff;
+        let matchmakingInterval = null;
+        let ytPlayerInstance = null;
 
-        // Transitions home screen to live gameplay frame
-        function startGame() {
-            // Load Music if URL is provided
+        // Bootstrapping Initial Execution Lifecycle on Script Mount
+        window.addEventListener('DOMContentLoaded', () => {
+            runCyberPreloader();
+        });
+
+        // Simulates an operational framework load to prevent rendering black spaces
+        function runCyberPreloader() {
+            let progress = 0;
+            const bar = document.getElementById('loading-progress');
+            const txt = document.getElementById('loading-text');
+            
+            const interval = setInterval(() => {
+                progress += Math.floor(Math.random() * 8) + 4;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        document.getElementById('loading-screen').style.opacity = '0';
+                        setTimeout(() => {
+                            document.getElementById('loading-screen').style.display = 'none';
+                            document.getElementById('home-screen').style.display = 'flex';
+                        }, 400);
+                    }, 300);
+                }
+                bar.style.width = progress + '%';
+                txt.innerText = `LOADING COURT GRID [${progress}%]`;
+            }, 80);
+        }
+
+        function goToModes() {
+            // Background Jukebox injection handler
             const url = document.getElementById('ytUrl').value;
-            if (url) {
-                let videoId = url.split('v=')[1]?.split('&')[0] || url.split('youtu.be/')[1]?.split('?')[0];
+            if (url && !ytPlayerInstance) {
+                let videoId = "";
+                if(url.includes('v=')) { videoId = url.split('v=')[1].split('&')[0]; } 
+                else if(url.includes('youtu.be/')) { videoId = url.split('youtu.be/')[1].split('?')[0]; }
+                
                 if (videoId) {
                     let tag = document.createElement('script');
                     tag.src = "https://youtube.com";
                     document.head.appendChild(tag);
                     window.onYouTubeIframeAPIReady = () => {
-                        player = new YT.Player('youtube-audio', {
+                        ytPlayerInstance = new YT.Player('youtube-audio', {
                             height: '0', width: '0', videoId: videoId,
                             events: { 'onReady': (e) => e.target.playVideo() }
                         });
@@ -134,24 +222,65 @@
                 }
             }
 
-            // Sync shoe selection colors right before generating the sprite
+            // Bind shoe configuration styles
             const shoe = document.getElementById('shoeSelect').value;
             if(shoe === 'kobe6') selectedShoeColor = 0x39ff14;
             if(shoe === 'jordan1') selectedShoeColor = 0xcc0000;
             if(shoe === 'lebron20') selectedShoeColor = 0xff00ff;
             if(shoe === 'curry10') selectedShoeColor = 0xffcc00;
 
-            // Swap interface panels smoothly
-            document.getElementById('home-screen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('home-screen').style.display = 'none';
-                document.getElementById('game-layout').style.display = 'flex';
-                initPhaserGame(); // Fires up the game system
-            }, 500);
+            document.getElementById('home-screen').style.display = 'none';
+            document.getElementById('mode-screen').style.display = 'flex';
         }
 
-        // Complete 2D Phaser Build Engine
-        function initPhaserGame() {
+        function backToCustomizer() {
+            document.getElementById('mode-screen').style.display = 'none';
+            document.getElementById('home-screen').style.display = 'flex';
+        }
+
+        function launchGameMode(mode) {
+            activeGameMode = mode;
+            
+            if (mode === '1v1-real') {
+                // Engage Fake Matchmaking loop for real player queries as ordered
+                document.getElementById('mode-screen').style.display = 'none';
+                document.getElementById('matchmaking-screen').style.display = 'flex';
+                
+                let countdown = 4;
+                matchmakingInterval = setInterval(() => {
+                    countdown--;
+                    if(countdown <= 0) {
+                        clearInterval(matchmakingInterval);
+                        document.getElementById('matchmaking-screen').style.display = 'none';
+                        executeCoreGameSpawn();
+                    }
+                }, 1000);
+            } else {
+                document.getElementById('mode-screen').style.display = 'none';
+                executeCoreGameSpawn();
+            }
+        }
+
+        function cancelMatchmaking() {
+            clearInterval(matchmakingInterval);
+            document.getElementById('matchmaking-screen').style.display = 'none';
+            document.getElementById('mode-screen').style.display = 'flex';
+        }
+
+        function executeCoreGameSpawn() {
+            document.getElementById('game-layout').style.display = 'flex';
+            if (activeGameMode === 'training') {
+                document.getElementById('training-hud').style.display = 'flex';
+            }
+            initPhaserInstance();
+        }
+
+        // Exposed global hooks for layout communication access points into Phaser scenes
+        let triggerTrainerSpawn = () => {};
+        let triggerTrainerClear = () => {};
+
+        // MAIN PHASER CORE SYSTEM ENGINE CONFIGURATION
+        function initPhaserInstance() {
             const config = {
                 type: Phaser.AUTO,
                 width: 800,
@@ -159,75 +288,133 @@
                 parent: 'game-container',
                 physics: { 
                     default: 'arcade', 
-                    arcade: { gravity: { y: 650 }, debug: false } 
+                    arcade: { gravity: { y: 700 }, debug: false } 
                 },
                 scene: { create: create, update: update }
             };
 
             const game = new Phaser.Game(config);
-            let playerSprite, ball, cursors, keyC, hoop;
+            let playerSprite, ball, cursors, keyC, rimTarget;
+            let opposingAiGroup, friendlyAiGroup;
 
             function create() {
-                // Hardwood Arena Court Drawing
-                let platforms = this.physics.add.staticGroup();
-                let floor = this.add.rectangle(400, 480, 800, 40, 0x1a1a2e); // Deep cyber wood hue
-                platforms.add(floor);
+                let self = this;
                 
-                // Court boundaries neon accents
-                this.add.rectangle(400, 462, 800, 4, 0x00ffff); 
+                // Static Ground platform generation setup
+                let platforms = this.physics.add.staticGroup();
+                let groundFloor = this.add.rectangle(400, 485, 800, 30, 0x121224);
+                platforms.add(groundFloor);
+                this.add.rectangle(400, 471, 800, 2, 0x00ffff); // Digital Court line layout element
 
-                // Hoop setup
-                this.add.rectangle(760, 200, 8, 90, 0xffffff); // Neon White Backboard
-                hoop = this.add.rectangle(725, 230, 42, 8, 0xff007f); // Hot Pink Rim Rim
-                this.physics.add.existing(hoop, true);
+                // Structure Rim Layout targets
+                this.add.rectangle(770, 190, 6, 100, 0xffffff); // Digital Glass Backboard
+                rimTarget = this.add.rectangle(730, 220, 40, 6, 0xff007f); // Cyber Rim Net
+                this.physics.add.existing(rimTarget, true);
 
-                // Initialize customized avatar 
-                playerSprite = this.add.rectangle(150, 400, 36, 75, selectedShoeColor);
+                // Instantiating Hero Controlled Archetype Object
+                playerSprite = this.add.rectangle(120, 400, 34, 76, selectedShoeColor);
                 this.physics.add.existing(playerSprite);
                 playerSprite.body.setCollideWorldBounds(true);
 
-                // Basketball setup
-                ball = this.add.circle(400, 200, 13, 0xffaa00);
+                // Instantiating Dynamic Ball element
+                ball = this.add.circle(400, 150, 12, 0xff9900);
                 this.physics.add.existing(ball);
                 ball.body.setCollideWorldBounds(true);
-                ball.body.setBounce(0.75);
+                ball.body.setBounce(0.72);
 
-                // Interactive 2D World Colliders
+                // Allocating Entity Group Arrays
+                opposingAiGroup = this.physics.add.group();
+                friendlyAiGroup = this.physics.add.group();
+
+                // Object Layer Collision Definitions mapping matrix
                 this.physics.add.collider(playerSprite, platforms);
                 this.physics.add.collider(ball, platforms);
                 this.physics.add.collider(playerSprite, ball);
-                this.physics.add.overlap(ball, hoop, scorePoints, null, this);
+                this.physics.add.collider(opposingAiGroup, platforms);
+                this.physics.add.collider(friendlyAiGroup, platforms);
+                this.physics.add.collider(opposingAiGroup, ball);
+                this.physics.add.collider(friendlyAiGroup, ball);
+                
+                this.physics.add.overlap(ball, rimTarget, (b, r) => {
+                    ball.setPosition(400, 100);
+                    ball.body.setVelocity(0, 0);
+                    let textAlert = self.add.text(320, 130, 'GRID SWISH!', { fontSize: '32px', fill: '#00ffff', fontFamily: 'monospace', fontWeight: 'bold' });
+                    self.time.delayedCall(800, () => { textAlert.destroy(); });
+                }, null, this);
 
-                // Key tracking hooks
+                // System keyboard configuration maps
                 cursors = this.input.keyboard.createCursorKeys();
                 keyC = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
+
+                // BUILD SCENARIO DISPATCH INJECTIONS
+                if (activeGameMode === '1v1-ai' || activeGameMode === '1v1-real') {
+                    // Spawn single defense adversary bot actor script
+                    createDefenderBot(self, 650, 0xff0055);
+                } 
+                else if (activeGameMode === 'comp-5v5') {
+                    // Assemble a Full 5v5 Electronic Pro-Am lineup structure layout
+                    for(let i=0; i<4; i++) {
+                        createFriendlyBot(self, 200 + (i*60), 0x00ffff);
+                    }
+                    for(let j=0; j<5; j++) {
+                        createDefenderBot(self, 480 + (j*60), 0xff0055);
+                    }
+                }
+
+                // Attach explicit cross-context calls to global training module HUD layout hooks
+                triggerTrainerSpawn = () => {
+                    createDefenderBot(self, Phaser.Math.Between(300, 700), 0xff0055);
+                };
+                triggerTrainerClear = () => {
+                    opposingAiGroup.clear(true, true);
+                };
             }
 
             function update() {
+                // Handle keyboard events mapped horizontally
                 if (cursors.left.isDown) { playerSprite.body.setVelocityX(-260); }
                 else if (cursors.right.isDown) { playerSprite.body.setVelocityX(260); }
                 else { playerSprite.body.setVelocityX(0); }
 
-                if (cursors.up.isDown && playerSprite.body.touching.down) { playerSprite.body.setVelocityY(-440); }
+                // Manage jump actions conditionally
+                if (cursors.up.isDown && playerSprite.body.touching.down) { playerSprite.body.setVelocityY(-460); }
 
-                // The 'C' Magic keybind logic triggers ball reset instantly
+                // Intercept 'C' input request to reset ball positioning rules instantly
                 if (Phaser.Input.Keyboard.JustDown(keyC)) {
-                    ball.setPosition(playerSprite.x, playerSprite.y - 55);
+                    ball.setPosition(playerSprite.x, playerSprite.y - 50);
                     ball.body.setVelocity(0, 0);
                 }
+
+                // Process reactive defensive tracking configurations
+                opposingAiGroup.getChildren().forEach(bot => {
+                    if (ball.x > bot.x + 20) { bot.body.setVelocityX(140); }
+                    else if (ball.x < bot.x - 20) { bot.body.setVelocityX(-140); }
+                    else { bot.body.setVelocityX(0); }
+                    
+                    if (ball.y < bot.y - 100 && bot.body.touching.down && Phaser.Math.Between(1,100) > 97) {
+                        bot.body.setVelocityY(-400);
+                    }
+                });
+
+                // Process offensive tracking logic for teammates
+                friendlyAiGroup.getChildren().forEach(bot => {
+                    if (playerSprite.x + 80 > bot.x) { bot.body.setVelocityX(120); }
+                    else if (playerSprite.x + 150 < bot.x) { bot.body.setVelocityX(-120); }
+                    else { bot.body.setVelocityX(0); }
+                });
             }
 
-            function scorePoints(ballObj, rimObj) {
-                ballObj.setPosition(400, 100);
-                ballObj.body.setVelocity(0, 0);
-                
-                let scoreText = this.add.text(320, 140, 'SLAM DUNK!', { 
-                    fontSize: '36px', 
-                    fill: '#00ffff', 
-                    fontFamily: 'monospace',
-                    fontWeight: 'bold' 
-                });
-                this.time.delayedCall(800, () => { scoreText.destroy(); });
+            // Instantiation Helpers inside local Phaser engine instances
+            function createDefenderBot(scene, xPos, colorHex) {
+                let bot = scene.add.rectangle(xPos, 400, 34, 76, colorHex);
+                opposingAiGroup.add(bot);
+                bot.body.setCollideWorldBounds(true);
+            }
+
+            function createFriendlyBot(scene, xPos, colorHex) {
+                let bot = scene.add.rectangle(xPos, 400, 34, 76, colorHex);
+                friendlyAiGroup.add(bot);
+                bot.body.setCollideWorldBounds(true);
             }
         }
     </script>
