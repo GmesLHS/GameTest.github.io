@@ -1,422 +1,473 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYBER HOOPZ 2026</title>
-    <!-- Phaser Engine Injection via Cloudflare CDN -->
-    <script src="https://cloudflare.com"></script>
-    <style>
-        * { box-sizing: border-box; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #05050a; font-family: 'Courier New', Courier, monospace; color: #00ffff; overflow: hidden; select-start: none; }
-        
-        /* Interactive Layer Layouts */
-        .screen-container { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; background: linear-gradient(135deg, #0d0116 0%, #030312 100%); transition: opacity 0.4s ease; }
-        
-        /* 6'7 Kid Bobbing Widget Overlay */
-        #kid-avatar { position: absolute; top: 20px; left: 20px; width: 90px; height: 130px; background: #111; border: 2px solid #ff007f; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: bobbing 3s ease-in-out infinite; box-shadow: 0 0 15px #ff007f; z-index: 100; }
-        @keyframes bobbing { 0% { transform: translateY(0px); } 50% { transform: translateY(12px); } 100% { transform: translateY(0px); } }
-        .kid-head { width: 30px; height: 30px; background: #ffcc99; border-radius: 50%; position: relative; }
-        .kid-head::after { content: '🕶️'; position: absolute; top: 2px; left: 4px; font-size: 14px; }
-        .kid-jersey { width: 45px; height: 60px; background: #ff007f; margin-top: 5px; border-radius: 4px 4px 0 0; text-align: center; color: white; font-weight: bold; font-size: 12px; line-height: 40px; }
-        .kid-label { font-size: 10px; color: #ff007f; margin-top: 4px; font-weight: bold; text-shadow: 0 0 5px #ff007f; }
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>2K-Hoops: Barber Shop Edition</title>
+   <!-- Core Engine -->
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"></script>
+   <script src="https://cdn.tailwindcss.com"></script>
+   <style>
+       body { margin: 0; overflow: hidden; background: #010103; font-family: 'Inter', sans-serif; }
+       #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+       #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
+       .interactive { pointer-events: auto; }
+       .glass { background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.1); }
+       .hidden { display: none !important; }
+      
+       #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; transition: opacity 0.5s ease-out; }
+      
+       @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+       .pulse { animation: pulse 1.5s infinite; }
+       .neon-text-red { color: #ef4444; text-shadow: 0 0 10px rgba(239,68,68,0.5); }
+      
+       @keyframes tauntPop { 0% { opacity: 0; transform: translateY(20px) scale(0.8); } 20% { opacity: 1; transform: translateY(0) scale(1.1); } 80% { opacity: 1; } 100% { opacity: 0; transform: scale(0.9); } }
+       .taunt-indicator { animation: tauntPop 1.5s ease-out forwards; }
+      
+       .shaking { animation: shake 0.1s infinite; }
+       @keyframes shake { 0% { transform: translate(2px, 2px); } 50% { transform: translate(-2px, -2px); } 100% { transform: translate(0, 0); } }
 
-        /* Dynamic Loading Screen View */
-        #loading-screen { z-index: 40; }
-        .cyber-loader-bar { width: 300px; height: 8px; background: #111; border: 1px solid #00ffff; border-radius: 4px; margin-top: 20px; overflow: hidden; position: relative; }
-        .cyber-loader-progress { width: 0%; height: 100%; background: #ff007f; box-shadow: 0 0 10px #ff007f; transition: width 0.1s linear; }
 
-        /* Title Vector Headers */
-        .title-container { text-align: center; margin-bottom: 20px; }
-        .main-title { font-size: 52px; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px #00ffff, 0 0 40px #ff007f; margin: 0; letter-spacing: 4px; }
-        .sub-title { font-size: 14px; color: #ff007f; letter-spacing: 6px; text-transform: uppercase; margin-top: 5px; }
+       /* Shot Meter Styling */
+       #shot-meter-container {
+           position: absolute;
+           top: 50%;
+           left: 50%;
+           transform: translate(-50%, 80px);
+           width: 160px;
+           height: 12px;
+           background: rgba(0,0,0,0.6);
+           border: 2px solid rgba(255,255,255,0.2);
+           border-radius: 6px;
+           overflow: hidden;
+           z-index: 20;
+       }
+       #shot-meter-fill { height: 100%; background: #fff; width: 0%; box-shadow: 0 0 10px #fff; transition: width 0.05s linear; }
+       #shot-meter-target { position: absolute; left: 70%; width: 15%; height: 100%; background: rgba(34, 197, 94, 0.4); border-left: 2px solid #22c55e; border-right: 2px solid #22c55e; }
+       .perfect-flash { animation: flashGreen 0.5s ease-out; }
+       @keyframes flashGreen { 0% { background: #22c55e; } 100% { background: transparent; } }
 
-        /* Setup Panel Selection Box */
-        .customizer-box { background: rgba(255, 255, 255, 0.02); border: 1px solid #00ffff; padding: 20px; border-radius: 12px; box-shadow: 0 0 30px rgba(0,255,255,0.1); width: 480px; max-width: 95%; text-align: center; }
-        .input-group { margin: 12px 0; display: flex; justify-content: space-between; align-items: center; }
-        label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #00ffff; }
-        input, select { background: #111; border: 1px solid #ff007f; color: #fff; padding: 8px; border-radius: 4px; width: 55%; font-family: monospace; outline: none; }
-        
-        /* Action Execution Controls */
-        .action-btn { width: 100%; background: #ff007f; color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; font-family: monospace; cursor: pointer; border-radius: 4px; margin-top: 10px; text-shadow: 0 0 5px #fff; box-shadow: 0 0 15px #ff007f; }
-        .action-btn:hover { background: #00ffff; color: #000; box-shadow: 0 0 25px #00ffff; }
 
-        /* Mode Selection Framework Layout */
-        #mode-screen { z-index: 20; display: none; }
-        .modes-grid { display: grid; grid-template-columns: 1fr; gap: 12px; width: 100%; margin-top: 15px; }
-        .mode-card { border: 1px solid #ff007f; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 6px; cursor: pointer; text-align: left; transition: 0.2s; position: relative; }
-        .mode-card:hover { border-color: #00ffff; box-shadow: 0 0 15px rgba(0,255,255,0.3); background: rgba(0,255,255,0.05); }
-        .mode-card h4 { margin: 0 0 5px 0; color: #00ffff; text-transform: uppercase; }
-        .mode-card p { margin: 0; font-size: 11px; color: #aaa; }
-
-        /* Matchmaking Radar Screen HUD */
-        #matchmaking-screen { z-index: 30; display: none; text-align: center; }
-        .radar-pulse { width: 80px; height: 80px; border: 2px solid #00ffff; border-radius: 50%; margin: 25px auto; position: relative; animation: pulse 1.5s infinite ease-out; }
-        @keyframes pulse { 0% { transform: scale(0.6); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
-
-        /* Dynamic Game View Layer HUD */
-        #game-layout { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; position: relative; }
-        #game-container { border: 3px solid #00ffff; box-shadow: 0 0 30px rgba(0, 255, 255, 0.2); border-radius: 8px; background: #000; width: 800px; height: 500px; }
-        .game-controls-tip { margin-top: 12px; color: #ff007f; font-size: 13px; text-shadow: 0 0 5px rgba(255,0,127,0.3); text-align: center; }
-        
-        /* Training Control Panel Widget Overlay */
-        #training-hud { position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.85); border: 1px solid #ff007f; padding: 10px; border-radius: 6px; display: none; flex-direction: column; gap: 5px; z-index: 50; }
-        .hud-btn { background: #00ffff; color: #000; font-family: monospace; border: none; padding: 6px 12px; font-weight: bold; cursor: pointer; font-size: 11px; border-radius: 3px; }
-        .hud-btn:hover { background: #ff007f; color: #fff; }
-    </style>
+       /* Scrollbar styling for menus */
+       .custom-scroll::-webkit-scrollbar { width: 4px; }
+       .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+       .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+   </style>
 </head>
 <body>
 
-    <!-- 6'7 Kid Floating Asset Indicator -->
-    <div id="kid-avatar">
-        <div class="kid-head"></div>
-        <div class="kid-jersey">6'7</div>
-        <div class="kid-label">PROSPECT</div>
-    </div>
 
-    <!-- LAYER 1: NEON LOADING ENGINE SCREEN -->
-    <div id="loading-screen" class="screen-container">
-        <div class="title-container">
-            <h1 class="main-title">CYBER HOOPZ</h1>
-            <div class="sub-title">SYSTEM INITIALIZATION</div>
-        </div>
-        <div class="cyber-loader-bar">
-            <div id="loading-progress" class="cyber-loader-progress"></div>
-        </div>
-        <p id="loading-text" style="font-size: 11px; margin-top: 10px; color: #ff007f;">LOADING COURT GRID [0%]</p>
-    </div>
+<div id="loading-screen">
+   <div class="text-center">
+       <div class="text-5xl font-black italic mb-2 tracking-tighter text-white">2K-HOOPS</div>
+       <div id="status-text" class="text-[10px] uppercase tracking-[0.5em] pulse text-blue-500">Fast Booting 2026 Engine...</div>
+   </div>
+</div>
 
-    <!-- LAYER 2: INTERACTIVE DECK GEAR CONFIGURATOR -->
-    <div id="home-screen" class="screen-container" style="display: none;">
-        <div class="title-container">
-            <h1 class="main-title">CYBER HOOPZ</h1>
-            <div class="sub-title">Season 2026 Edition</div>
-        </div>
 
-        <div class="customizer-box">
-            <div class="input-group">
-                <label>Drip / Shoes</label>
-                <select id="shoeSelect">
-                    <option value="jordan1">Air Jordan 1 Retro</option>
-                    <option value="kobe6">Kobe 6 "Grinch"</option>
-                    <option value="lebron20">LeBron Next-Gen</option>
-                    <option value="curry10">Curry 10 Cyber</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>Jukebox (YT URL)</label>
-                <input type="text" id="ytUrl" placeholder="Paste music loop link...">
-            </div>
-            <button class="action-btn" onclick="goToModes()">NEXT: SELECT MODE</button>
-        </div>
-    </div>
+<div id="canvas-container"></div>
 
-    <!-- LAYER 3: 2026 MODE DISTRIBUTION BRANCH -->
-    <div id="mode-screen" class="screen-container">
-        <div class="title-container">
-            <h1 class="main-title">SELECT MATCH</h1>
-            <div class="sub-title">CHOOSE FIELD OF PLAY</div>
-        </div>
-        <div class="customizer-box">
-            <div class="modes-grid">
-                <div class="mode-card" onclick="launchGameMode('1v1-ai')">
-                    <h4>1) Solo 1v1 vs Simulated AI</h4>
-                    <p>Test your step-back mechanics against a defensive android script.</p>
-                </div>
-                <div class="mode-card" onclick="launchGameMode('1v1-real')">
-                    <h4>2) Ranked 1v1 Matchmaking (PvP)</h4>
-                    <p>Search global server nets for active matching opponents.</p>
-                </div>
-                <div class="mode-card" onclick="launchGameMode('comp-5v5')">
-                    <h4>3) COMP Pro-Am 5v5 Arena Match</h4>
-                    <p>Full-scale team strategy deployment. Simulated AI engine loadouts.</p>
-                </div>
-                <div class="mode-card" onclick="launchGameMode('training')">
-                    <h4>4) Prototype Training Facility Room</h4>
-                    <p>Open court sandbox gym. Spawn or clear target bots instantly on command.</p>
-                </div>
-            </div>
-            <button class="action-btn" style="background:#333; box-shadow:none; margin-top:15px;" onclick="backToCustomizer()">← BACK TO GEAR</button>
-        </div>
-    </div>
 
-    <!-- LAYER 4: ONLINE MATCH SEARCH OVERLAY HUD -->
-    <div id="matchmaking-screen" class="screen-container">
-        <div class="radar-pulse"></div>
-        <h3 style="color: #00ffff; letter-spacing: 2px; margin: 10px 0;">Search For a Player please stand By!</h3>
-        <p style="color: #ff007f; font-size: 12px;" id="matchmaking-timer">Ping tracking: active...</p>
-        <button class="action-btn" style="width: auto; padding: 10px 20px; background: #222; box-shadow: none; border: 1px solid #ff007f; margin-top: 20px;" onclick="cancelMatchmaking()">CANCEL SEARCH</button>
-    </div>
+<div id="ui-layer">
+   <!-- Main Menu -->
+   <div id="main-menu" class="hidden interactive flex flex-col items-center justify-center h-full text-white">
+       <h1 class="text-8xl font-black mb-2 italic tracking-tighter text-blue-500 drop-shadow-2xl">2K-Hoops</h1>
+       <p class="text-[10px] uppercase tracking-[0.6em] text-gray-500 mb-10">Barber Shop & Shot Meter Edition</p>
+      
+       <div class="flex flex-col gap-4 mb-8 w-80">
+           <button onclick="startMode('freeplay')" class="bg-blue-600 py-6 rounded-full text-2xl font-black transition-all hover:scale-105 shadow-2xl shadow-blue-900/50">FREE PLAY</button>
+           <button onclick="startMode('dunkcontest')" class="bg-purple-600 py-6 rounded-full text-2xl font-black transition-all hover:scale-105 shadow-2xl shadow-purple-900/50">DUNK CONTEST</button>
+       </div>
 
-    <!-- LAYER 5: MAIN LIVE GAME CORE RUNTIME VIEWPORT -->
-    <div id="game-layout">
-        <div id="game-container"></div>
-        <div class="game-controls-tip">
-            ← → Move Dribbler | ↑ Sky Hook Jump | <strong>[ C ] Key</strong> Call Ball to Hands
-        </div>
-        <!-- Contextual Widget Overlay box reserved for Sandbox Gym Room -->
-        <div id="training-hud">
-            <span style="font-size: 10px; color: #ff007f; font-weight: bold; margin-bottom: 2px;">SANDBOX TOOL</span>
-            <button class="hud-btn" onclick="triggerTrainerSpawn()">SPAWN BOT AI</button>
-            <button class="hud-btn" style="background:#ff007f; color:#fff;" onclick="triggerTrainerClear()">CLEAR BOTS</button>
-        </div>
-    </div>
-    
-    <!-- Hidden Youtube Stream Receiver Mount Point -->
-    <div id="youtube-audio" style="position:absolute; top:-9999px; left:-9999px;"></div>
 
-    <script>
-        // Global Game Configuration Values
-        let activeGameMode = "";
-        let selectedShoeColor = 0x00aaff;
-        let matchmakingInterval = null;
-        let ytPlayerInstance = null;
+       <div class="glass p-6 rounded-[2rem] border border-white/10 mb-8 w-96 text-center">
+           <p class="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-4">Select Defensive AI</p>
+           <div class="grid grid-cols-2 gap-2">
+               <button onclick="setDifficulty('basic')" class="diff-btn bg-gray-900 p-2 rounded-xl text-[10px] font-bold hover:bg-blue-600 border border-white/5">BASIC</button>
+               <button onclick="setDifficulty('good')" class="diff-btn bg-gray-900 p-2 rounded-xl text-[10px] font-bold hover:bg-blue-600 border border-white/5">GOOD</button>
+               <button onclick="setDifficulty('expert')" class="diff-btn bg-gray-900 p-2 rounded-xl text-[10px] font-bold hover:bg-blue-600 border border-white/5">EXPERT</button>
+               <button onclick="setDifficulty('kobe')" class="diff-btn border border-purple-500 p-2 rounded-xl text-[10px] font-black text-purple-400 hover:bg-purple-600 hover:text-white">KOBE</button>
+               <button onclick="setDifficulty('lebron')" class="diff-btn border border-yellow-500 p-2 rounded-xl text-[10px] font-black text-yellow-400 hover:bg-yellow-600 hover:text-white col-span-2">PRIME LEBRON</button>
+           </div>
+       </div>
 
-        // Bootstrapping Initial Execution Lifecycle on Script Mount
-        window.addEventListener('DOMContentLoaded', () => {
-            runCyberPreloader();
-        });
 
-        // Simulates an operational framework load to prevent rendering black spaces
-        function runCyberPreloader() {
-            let progress = 0;
-            const bar = document.getElementById('loading-progress');
-            const txt = document.getElementById('loading-text');
-            
-            const interval = setInterval(() => {
-                progress += Math.floor(Math.random() * 8) + 4;
-                if (progress >= 100) {
-                    progress = 100;
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        document.getElementById('loading-screen').style.opacity = '0';
-                        setTimeout(() => {
-                            document.getElementById('loading-screen').style.display = 'none';
-                            document.getElementById('home-screen').style.display = 'flex';
-                        }, 400);
-                    }, 300);
-                }
-                bar.style.width = progress + '%';
-                txt.innerText = `LOADING COURT GRID [${progress}%]`;
-            }, 80);
-        }
+       <div class="flex gap-4">
+           <button id="customize-btn" class="bg-gray-900 px-10 py-4 rounded-full font-bold border border-gray-700 hover:bg-gray-800 transition-all uppercase text-xs">Locker</button>
+           <button id="store-btn" class="bg-yellow-600 px-10 py-4 rounded-full font-bold border border-yellow-400 hover:bg-yellow-500 transition-all uppercase text-xs text-black">Store</button>
+       </div>
+   </div>
 
-        function goToModes() {
-            // Background Jukebox injection handler
-            const url = document.getElementById('ytUrl').value;
-            if (url && !ytPlayerInstance) {
-                let videoId = "";
-                if(url.includes('v=')) { videoId = url.split('v=')[1].split('&')[0]; } 
-                else if(url.includes('youtu.be/')) { videoId = url.split('youtu.be/')[1].split('?')[0]; }
-                
-                if (videoId) {
-                    let tag = document.createElement('script');
-                    tag.src = "https://youtube.com";
-                    document.head.appendChild(tag);
-                    window.onYouTubeIframeAPIReady = () => {
-                        ytPlayerInstance = new YT.Player('youtube-audio', {
-                            height: '0', width: '0', videoId: videoId,
-                            events: { 'onReady': (e) => e.target.playVideo() }
-                        });
-                    };
-                }
-            }
 
-            // Bind shoe configuration styles
-            const shoe = document.getElementById('shoeSelect').value;
-            if(shoe === 'kobe6') selectedShoeColor = 0x39ff14;
-            if(shoe === 'jordan1') selectedShoeColor = 0xcc0000;
-            if(shoe === 'lebron20') selectedShoeColor = 0xff00ff;
-            if(shoe === 'curry10') selectedShoeColor = 0xffcc00;
+   <!-- HUD -->
+   <div id="game-hud" class="hidden absolute top-0 left-0 w-full p-8 flex justify-between items-start text-white">
+       <div class="flex gap-2">
+           <div class="glass px-8 py-5 rounded-[2rem] border-b-4 border-blue-500 shadow-2xl flex flex-col items-center">
+               <p class="text-[8px] font-black text-gray-500 tracking-[0.2em] uppercase mb-1">Score</p>
+               <p id="score-val" class="text-4xl font-black italic">0</p>
+           </div>
+           <div class="glass px-8 py-5 rounded-[2rem] border-b-4 border-red-500 shadow-2xl flex flex-col items-center">
+               <p class="text-[8px] font-black text-gray-500 tracking-[0.2em] uppercase mb-1">Clock</p>
+               <p id="game-clock" class="text-4xl font-black italic neon-text-red">12:00</p>
+           </div>
+           <button id="quit-btn" class="interactive glass px-6 rounded-[2rem] font-black hover:bg-red-600/20 text-[9px] uppercase tracking-widest h-[84px]">Quit</button>
+       </div>
+   </div>
 
-            document.getElementById('home-screen').style.display = 'none';
-            document.getElementById('mode-screen').style.display = 'flex';
-        }
 
-        function backToCustomizer() {
-            document.getElementById('mode-screen').style.display = 'none';
-            document.getElementById('home-screen').style.display = 'flex';
-        }
+   <!-- Shot Meter UI -->
+   <div id="shot-meter-container" class="hidden">
+       <div id="shot-meter-target"></div>
+       <div id="shot-meter-fill"></div>
+   </div>
 
-        function launchGameMode(mode) {
-            activeGameMode = mode;
-            
-            if (mode === '1v1-real') {
-                // Engage Fake Matchmaking loop for real player queries as ordered
-                document.getElementById('mode-screen').style.display = 'none';
-                document.getElementById('matchmaking-screen').style.display = 'flex';
-                
-                let countdown = 4;
-                matchmakingInterval = setInterval(() => {
-                    countdown--;
-                    if(countdown <= 0) {
-                        clearInterval(matchmakingInterval);
-                        document.getElementById('matchmaking-screen').style.display = 'none';
-                        executeCoreGameSpawn();
-                    }
-                }, 1000);
-            } else {
-                document.getElementById('mode-screen').style.display = 'none';
-                executeCoreGameSpawn();
-            }
-        }
 
-        function cancelMatchmaking() {
-            clearInterval(matchmakingInterval);
-            document.getElementById('matchmaking-screen').style.display = 'none';
-            document.getElementById('mode-screen').style.display = 'flex';
-        }
+   <!-- Store Menu -->
+   <div id="store-menu" class="hidden interactive absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] glass p-10 rounded-[3rem] text-white">
+       <h2 class="text-3xl font-black mb-6 text-yellow-500 italic border-b border-white/5 pb-4 uppercase">💎 Ability Store</h2>
+       <div class="space-y-3 mb-8 max-h-[400px] overflow-y-auto pr-2 custom-scroll">
+           <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/10 hover:border-purple-500 transition-all cursor-pointer" onclick="buyAbility('kobe')">
+               <div><h3 class="text-sm font-black uppercase">Mamba Fadeaway</h3><p class="text-[10px] text-gray-400">High accuracy on retreating shots.</p></div>
+               <span class="text-purple-400 text-[10px] font-black border border-purple-400 px-3 py-1 rounded">EQUIP</span>
+           </div>
+           <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/10 hover:border-orange-500 transition-all cursor-pointer" onclick="buyAbility('shaq')">
+               <div><h3 class="text-sm font-black uppercase">Rim Breaker</h3><p class="text-[10px] text-gray-400">Break the board on dunks.</p></div>
+               <span class="text-orange-500 text-[10px] font-black border border-orange-500 px-3 py-1 rounded">EQUIP</span>
+           </div>
+       </div>
+       <button id="close-store" class="w-full bg-blue-600 py-4 rounded-2xl font-black">EXIT STORE</button>
+   </div>
 
-        function executeCoreGameSpawn() {
-            document.getElementById('game-layout').style.display = 'flex';
-            if (activeGameMode === 'training') {
-                document.getElementById('training-hud').style.display = 'flex';
-            }
-            initPhaserInstance();
-        }
 
-        // Exposed global hooks for layout communication access points into Phaser scenes
-        let triggerTrainerSpawn = () => {};
-        let triggerTrainerClear = () => {};
+   <!-- Customization Menu (Barber Shop + Gear) -->
+   <div id="custom-menu" class="hidden interactive absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] glass p-10 rounded-[3rem] text-white">
+       <h2 class="text-3xl font-black mb-6 italic text-blue-400 border-b border-white/5 pb-4 uppercase">Locker & Barber</h2>
+       <div class="max-h-[500px] overflow-y-auto pr-4 custom-scroll">
+           <div class="mb-6">
+               <label class="block text-[9px] font-black text-gray-500 mb-3 uppercase tracking-widest">Barber Shop: NBA Cuts</label>
+               <div class="grid grid-cols-2 gap-2">
+                   <button onclick="setHair('bald')" class="bg-gray-900 p-3 rounded-xl text-[10px] font-bold hover:bg-blue-600">BALD (Kobe/LeBron)</button>
+                   <button onclick="setHair('afro')" class="bg-gray-900 p-3 rounded-xl text-[10px] font-bold hover:bg-blue-600">FROBE (Kobe Afro)</button>
+                   <button onclick="setHair('fade')" class="bg-gray-900 p-3 rounded-xl text-[10px] font-bold hover:bg-blue-600">BALD FADE (LeBron '26)</button>
+                   <button onclick="setHair('dreads')" class="bg-gray-900 p-3 rounded-xl text-[10px] font-bold hover:bg-blue-600">DREADS (Ja Morant)</button>
+                   <button onclick="setHair('mohawk')" class="bg-gray-900 p-3 rounded-xl text-[10px] font-bold hover:bg-blue-600">MOHAWK (Devin Booker)</button>
+                   <button onclick="setHair('emo')" class="bg-gray-900 p-3 rounded-xl text-[10px] font-bold hover:bg-blue-600">EMO DREADS (Butler)</button>
+               </div>
+           </div>
+           <div class="mb-6">
+               <label class="block text-[9px] font-black text-gray-500 mb-3 uppercase tracking-widest">Select Physical Build</label>
+               <div class="grid grid-cols-4 gap-2">
+                   <button onclick="setSize(0.85)" class="bg-gray-900 p-2 rounded-xl text-xs font-bold hover:bg-blue-600">S</button>
+                   <button onclick="setSize(1.0)" class="bg-gray-900 p-2 rounded-xl text-xs font-bold hover:bg-blue-600">M</button>
+                   <button onclick="setSize(1.15)" class="bg-gray-900 p-2 rounded-xl text-xs font-bold hover:bg-blue-600">L</button>
+                   <button onclick="setSize(1.95)" class="bg-yellow-600 p-2 rounded-xl text-xs font-black text-black">SHAQ</button>
+               </div>
+           </div>
+           <div class="mb-6">
+               <label class="block text-[9px] font-black text-gray-500 mb-3 uppercase tracking-widest">Signature Shoes</label>
+               <select id="shoe-select" class="w-full bg-black border border-white/10 p-4 rounded-xl text-xs font-medium">
+                   <option value="#fbcfe8">Travis Scott x AJ 1 "Pink Pack"</option>
+                   <option value="#ffd700">LeBron 23 "Nightmare Gold"</option>
+                   <option value="#ce1141">Kobe 6 Protro "Warning Label"</option>
+                   <option value="#ffffff">AJ 11 Low "Mother's Day"</option>
+               </select>
+           </div>
+       </div>
+       <button id="save-custom" class="w-full bg-blue-600 py-4 mt-4 rounded-2xl font-black">CONFIRM LOOK</button>
+   </div>
+  
+   <div id="controls-hint" class="hidden absolute bottom-10 left-1/2 -translate-x-1/2 text-white/50 text-center pointer-events-none text-[8px] uppercase tracking-[0.4em]">
+       [W] Sprint • [Q] Shoot (Hold) • [F] Swipe • [J] Dunk • [T] TAUNT
+   </div>
+  
+   <div id="taunt-notif" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white font-black italic text-6xl uppercase tracking-tighter taunt-indicator text-center">
+       <div id="taunt-name" class="text-blue-500">THE SILENCER</div>
+       <div id="crowd-reaction" class="text-white/40 text-xl mt-4">ARENA CHEERING!</div>
+   </div>
+</div>
 
-        // MAIN PHASER CORE SYSTEM ENGINE CONFIGURATION
-        function initPhaserInstance() {
-            const config = {
-                type: Phaser.AUTO,
-                width: 800,
-                height: 500,
-                parent: 'game-container',
-                physics: { 
-                    default: 'arcade', 
-                    arcade: { gravity: { y: 700 }, debug: false } 
-                },
-                scene: { create: create, update: update }
-            };
 
-            const game = new Phaser.Game(config);
-            let playerSprite, ball, cursors, keyC, rimTarget;
-            let opposingAiGroup, friendlyAiGroup;
+<script>
+   let scene, camera, renderer, ball, player, defender, hoop, dLight;
+   let score = 0, shootPower = 0, playerSize = 1.0, timeLeft = 720;
+   let isHoldingBall = true, isDunking = false, activeAbility = null, difficulty = 'basic';
+   let isTaunting = false, tauntIndex = 0, crowdMembers = [];
+   let gameState = 'menu', ballVelocity, hairGroup;
+   const keys = { w: false, a: false, s: false, d: false, f: false, j: false, q: false, t: false };
 
-            function create() {
-                let self = this;
-                
-                // Static Ground platform generation setup
-                let platforms = this.physics.add.staticGroup();
-                let groundFloor = this.add.rectangle(400, 485, 800, 30, 0x121224);
-                platforms.add(groundFloor);
-                this.add.rectangle(400, 471, 800, 2, 0x00ffff); // Digital Court line layout element
 
-                // Structure Rim Layout targets
-                this.add.rectangle(770, 190, 6, 100, 0xffffff); // Digital Glass Backboard
-                rimTarget = this.add.rectangle(730, 220, 40, 6, 0xff007f); // Cyber Rim Net
-                this.physics.add.existing(rimTarget, true);
+   const ARENA_X = 15, ARENA_Z = 28;
 
-                // Instantiating Hero Controlled Archetype Object
-                playerSprite = this.add.rectangle(120, 400, 34, 76, selectedShoeColor);
-                this.physics.add.existing(playerSprite);
-                playerSprite.body.setCollideWorldBounds(true);
 
-                // Instantiating Dynamic Ball element
-                ball = this.add.circle(400, 150, 12, 0xff9900);
-                this.physics.add.existing(ball);
-                ball.body.setCollideWorldBounds(true);
-                ball.body.setBounce(0.72);
+   function checkBoot() {
+       if (typeof THREE !== 'undefined') {
+           init();
+           document.getElementById('loading-screen').style.opacity = '0';
+           setTimeout(() => {
+               document.getElementById('loading-screen').classList.add('hidden');
+               document.getElementById('main-menu').classList.remove('hidden');
+           }, 500);
+       } else {
+           setTimeout(checkBoot, 50);
+       }
+   }
+   window.onload = checkBoot;
 
-                // Allocating Entity Group Arrays
-                opposingAiGroup = this.physics.add.group();
-                friendlyAiGroup = this.physics.add.group();
 
-                // Object Layer Collision Definitions mapping matrix
-                this.physics.add.collider(playerSprite, platforms);
-                this.physics.add.collider(ball, platforms);
-                this.physics.add.collider(playerSprite, ball);
-                this.physics.add.collider(opposingAiGroup, platforms);
-                this.physics.add.collider(friendlyAiGroup, platforms);
-                this.physics.add.collider(opposingAiGroup, ball);
-                this.physics.add.collider(friendlyAiGroup, ball);
-                
-                this.physics.add.overlap(ball, rimTarget, (b, r) => {
-                    ball.setPosition(400, 100);
-                    ball.body.setVelocity(0, 0);
-                    let textAlert = self.add.text(320, 130, 'GRID SWISH!', { fontSize: '32px', fill: '#00ffff', fontFamily: 'monospace', fontWeight: 'bold' });
-                    self.time.delayedCall(800, () => { textAlert.destroy(); });
-                }, null, this);
+   function init() {
+       scene = new THREE.Scene();
+       scene.background = new THREE.Color(0x020205);
+       scene.fog = new THREE.Fog(0x020205, 40, 130);
 
-                // System keyboard configuration maps
-                cursors = this.input.keyboard.createCursorKeys();
-                keyC = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
 
-                // BUILD SCENARIO DISPATCH INJECTIONS
-                if (activeGameMode === '1v1-ai' || activeGameMode === '1v1-real') {
-                    // Spawn single defense adversary bot actor script
-                    createDefenderBot(self, 650, 0xff0055);
-                } 
-                else if (activeGameMode === 'comp-5v5') {
-                    // Assemble a Full 5v5 Electronic Pro-Am lineup structure layout
-                    for(let i=0; i<4; i++) {
-                        createFriendlyBot(self, 200 + (i*60), 0x00ffff);
-                    }
-                    for(let j=0; j<5; j++) {
-                        createDefenderBot(self, 480 + (j*60), 0xff0055);
-                    }
-                }
+       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+       camera.position.set(0, 18, 30);
 
-                // Attach explicit cross-context calls to global training module HUD layout hooks
-                triggerTrainerSpawn = () => {
-                    createDefenderBot(self, Phaser.Math.Between(300, 700), 0xff0055);
-                };
-                triggerTrainerClear = () => {
-                    opposingAiGroup.clear(true, true);
-                };
-            }
 
-            function update() {
-                // Handle keyboard events mapped horizontally
-                if (cursors.left.isDown) { playerSprite.body.setVelocityX(-260); }
-                else if (cursors.right.isDown) { playerSprite.body.setVelocityX(260); }
-                else { playerSprite.body.setVelocityX(0); }
+       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+       renderer.setSize(window.innerWidth, window.innerHeight);
+       renderer.shadowMap.enabled = true;
+       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+       document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-                // Manage jump actions conditionally
-                if (cursors.up.isDown && playerSprite.body.touching.down) { playerSprite.body.setVelocityY(-460); }
 
-                // Intercept 'C' input request to reset ball positioning rules instantly
-                if (Phaser.Input.Keyboard.JustDown(keyC)) {
-                    ball.setPosition(playerSprite.x, playerSprite.y - 50);
-                    ball.body.setVelocity(0, 0);
-                }
+       scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+       dLight = new THREE.DirectionalLight(0xffffff, 2.0);
+       dLight.position.set(5, 60, 20);
+       dLight.castShadow = true;
+       scene.add(dLight);
 
-                // Process reactive defensive tracking configurations
-                opposingAiGroup.getChildren().forEach(bot => {
-                    if (ball.x > bot.x + 20) { bot.body.setVelocityX(140); }
-                    else if (ball.x < bot.x - 20) { bot.body.setVelocityX(-140); }
-                    else { bot.body.setVelocityX(0); }
-                    
-                    if (ball.y < bot.y - 100 && bot.body.touching.down && Phaser.Math.Between(1,100) > 97) {
-                        bot.body.setVelocityY(-400);
-                    }
-                });
 
-                // Process offensive tracking logic for teammates
-                friendlyAiGroup.getChildren().forEach(bot => {
-                    if (playerSprite.x + 80 > bot.x) { bot.body.setVelocityX(120); }
-                    else if (playerSprite.x + 150 < bot.x) { bot.body.setVelocityX(-120); }
-                    else { bot.body.setVelocityX(0); }
-                });
-            }
+       ballVelocity = new THREE.Vector3(0, 0, 0);
 
-            // Instantiation Helpers inside local Phaser engine instances
-            function createDefenderBot(scene, xPos, colorHex) {
-                let bot = scene.add.rectangle(xPos, 400, 34, 76, colorHex);
-                opposingAiGroup.add(bot);
-                bot.body.setCollideWorldBounds(true);
-            }
 
-            function createFriendlyBot(scene, xPos, colorHex) {
-                let bot = scene.add.rectangle(xPos, 400, 34, 76, colorHex);
-                friendlyAiGroup.add(bot);
-                bot.body.setCollideWorldBounds(true);
-            }
-        }
-    </script>
+       createArena();
+       createPlayer();
+       createDefender();
+       createHoop();
+       createBall();
+       createCrowd();
+
+
+       window.addEventListener('resize', onWindowResize);
+       window.addEventListener('keydown', (e) => {
+           const k = e.key.toLowerCase(); keys[k] = true;
+           if(k === 't' && !isTaunting && gameState !== 'menu') performTaunt();
+       });
+       window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
+      
+       animate();
+       setInterval(updateClock, 1000);
+   }
+
+
+   function createArena() {
+       const floor = new THREE.Mesh(new THREE.PlaneGeometry(ARENA_X*2.5, ARENA_Z*2.5), new THREE.MeshStandardMaterial({ color: 0xf4a460, roughness: 0.1 }));
+       floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
+
+
+       const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
+       const ctx = canvas.getContext('2d'); ctx.fillStyle = '#1d428a'; ctx.fillRect(0,0,512,512);
+       ctx.fillStyle = '#ffffff'; ctx.font = 'bold 150px Arial'; ctx.textAlign = 'center'; ctx.fillText('NBA', 256, 300);
+       const texture = new THREE.CanvasTexture(canvas);
+       const logo = new THREE.Mesh(new THREE.CircleGeometry(5, 32), new THREE.MeshStandardMaterial({ map: texture, transparent: true, opacity: 0.8 }));
+       logo.rotation.x = -Math.PI/2; logo.position.y = 0.05; scene.add(logo);
+
+
+       const wallMat = new THREE.MeshStandardMaterial({ color: 0x555555, wireframe: true, transparent: true, opacity: 0.1 });
+       const addWall = (w, x, z, r) => {
+           const f = new THREE.Mesh(new THREE.PlaneGeometry(w, 15), wallMat);
+           f.position.set(x, 7.5, z); f.rotation.y = r; scene.add(f);
+       };
+       addWall(ARENA_X*2, 0, ARENA_Z, 0); addWall(ARENA_X*2, 0, -ARENA_Z, Math.PI);
+       addWall(ARENA_Z*2, ARENA_X, 0, -Math.PI/2); addWall(ARENA_Z*2, -ARENA_X, 0, Math.PI/2);
+   }
+
+
+   function createCrowd() {
+       const crowd = new THREE.Group();
+       for(let i=0; i<600; i++) {
+           const p = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.7, 0.3), new THREE.MeshBasicMaterial({ color: Math.random()*0xffffff }));
+           p.position.set((Math.random() > 0.5 ? 25 : -25) + (Math.random()-0.5)*5, Math.random()*12, (Math.random()-0.5)*70);
+           crowd.add(p); crowdMembers.push(p);
+       }
+       scene.add(crowd);
+   }
+
+
+   function createPlayer() {
+       player = new THREE.Group();
+       const kit = new THREE.MeshStandardMaterial({ color: 0x1d428a });
+       const skin = new THREE.MeshStandardMaterial({ color: 0x8d5524 });
+      
+       const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 1.3, 8, 16), kit);
+       torso.position.y = 1.9; torso.castShadow = true; player.add(torso);
+       const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), skin);
+       head.position.y = 3.1; player.add(head);
+
+
+       // Arms
+       const armG = new THREE.CapsuleGeometry(0.12, 1.0, 4, 8);
+       const lArm = new THREE.Mesh(armG, skin); lArm.position.set(-0.7, 2.4, 0); lArm.name = "left_arm"; player.add(lArm);
+       const rArm = lArm.clone(); rArm.position.x = 0.7; rArm.name = "right_arm"; player.add(rArm);
+
+
+       // Hair Group
+       hairGroup = new THREE.Group();
+       head.add(hairGroup);
+
+
+       const lLeg = new THREE.Mesh(new THREE.CapsuleGeometry(0.24, 1.3, 4, 8), kit);
+       lLeg.position.set(-0.35, 0.9, 0); player.add(lLeg);
+       const rLeg = lLeg.clone(); rLeg.position.x = 0.35; player.add(rLeg);
+       const lShoe = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.35, 0.85), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+       lShoe.position.set(-0.35, 0.15, 0.2); lShoe.name = "left_shoe"; player.add(lShoe);
+       const rShoe = lShoe.clone(); rShoe.position.set(0.35, 0.15, 0.2); rShoe.name = "right_shoe"; player.add(rShoe);
+       player.position.set(0, 0, 15); scene.add(player);
+       setHair('afro'); // Default to Frobe
+   }
+
+
+   window.setHair = (type) => {
+       while(hairGroup.children.length > 0) hairGroup.remove(hairGroup.children[0]);
+       const hairMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+       if(type === 'afro') {
+           const h = new THREE.Mesh(new THREE.SphereGeometry(0.45, 16, 16), hairMat);
+           h.position.y = 0.1; hairGroup.add(h);
+       } else if(type === 'fade') {
+           const h = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 16), hairMat);
+           h.scale.set(1.05, 0.6, 1.05); h.position.y = 0.15; hairGroup.add(h);
+       } else if(type === 'dreads') {
+           for(let i=0; i<12; i++) {
+               const d = new THREE.Mesh(new THREE.CapsuleGeometry(0.04, 0.4, 4, 8), hairMat);
+               d.position.set(Math.cos(i)*0.3, 0.2, Math.sin(i)*0.3); d.rotation.z = Math.random()*0.5;
+               hairGroup.add(d);
+           }
+       } else if(type === 'mohawk') {
+           const h = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.2, 0.6), hairMat);
+           h.position.y = 0.35; hairGroup.add(h);
+       } else if(type === 'emo') {
+           for(let i=0; i<15; i++) {
+               const d = new THREE.Mesh(new THREE.CapsuleGeometry(0.03, 0.8, 4, 8), hairMat);
+               d.position.set(Math.cos(i)*0.35, -0.1, Math.sin(i)*0.35); d.rotation.x = 0.2;
+               hairGroup.add(d);
+           }
+       }
+   };
+
+
+   function performTaunt() {
+       if(isTaunting) return; isTaunting = true;
+       const taunts = ["THE SILENCER", "NIGHT NIGHT", "THE SHRUG", "FINGER WAG"];
+       const cur = taunts[tauntIndex % 4];
+       const reactionText = (tauntIndex % 4 < 2) ? "ARENA CHEERING!" : "ARENA BOOING!";
+       const reactColor = (tauntIndex % 4 < 2) ? "#3b82f6" : "#ef4444";
+      
+       document.getElementById('taunt-name').innerText = cur;
+       document.getElementById('taunt-name').style.color = reactColor;
+       document.getElementById('crowd-reaction').innerText = reactionText;
+       document.getElementById('taunt-notif').classList.remove('hidden');
+      
+       if(tauntIndex % 4 >= 2) document.body.classList.add('shaking');
+       crowdMembers.forEach(c => { c.material.color.set(reactColor); c.position.y += 2; });
+
+
+       setTimeout(() => {
+           document.getElementById('taunt-notif').classList.add('hidden');
+           isTaunting = false; tauntIndex++; document.body.classList.remove('shaking');
+           crowdMembers.forEach(c => { c.material.color.set(Math.random()*0xffffff); c.position.y -= 2; });
+       }, 1500);
+   }
+
+
+   function animate() {
+       requestAnimationFrame(animate);
+       if(!player || !ball || gameState === 'menu') return;
+      
+       // AI & Movement
+       let moveSpeed = keys.w ? 0.65 : 0.3;
+       if (keys.w) player.position.z -= moveSpeed;
+       if (keys.s) player.position.z += 0.3;
+       if (keys.a) player.position.x -= 0.3;
+       if (keys.d) player.position.x += 0.3;
+
+
+       dLight.position.set(player.position.x + 8, 65, player.position.z + 20);
+       camera.position.lerp(new THREE.Vector3(player.position.x, 22, player.position.z + 35), 0.1);
+       camera.lookAt(player.position.x, 6, player.position.z);
+
+
+       if (isHoldingBall) {
+           ball.position.set(player.position.x, player.position.y + 2.5, player.position.z - 0.8);
+           if (keys.q) {
+               shootPower += 0.015; if (shootPower > 1.0) shootPower = 1.0;
+               document.getElementById('shot-meter-container').classList.remove('hidden');
+               document.getElementById('shot-meter-fill').style.width = (shootPower * 100) + '%';
+           } else if (shootPower > 0) {
+               isHoldingBall = false;
+               let isPerfect = (shootPower >= 0.7 && shootPower <= 0.82);
+               if(isPerfect) document.getElementById('ui-layer').classList.add('perfect-flash');
+               ballVelocity.set(0, isPerfect ? 0.5 : 0.38 + shootPower, isPerfect ? -0.85 : -0.6 - (shootPower * 1.6));
+               shootPower = 0;
+               setTimeout(() => {
+                   document.getElementById('shot-meter-container').classList.add('hidden');
+                   document.getElementById('ui-layer').classList.remove('perfect-flash');
+               }, 500);
+           }
+           if (keys.j && player.position.distanceTo(new THREE.Vector3(0, 0, -26.5)) < 12) performDunk();
+       } else {
+           ball.position.add(ballVelocity); ballVelocity.y -= 0.02;
+           if (ball.position.y < 0.45) { ball.position.y = 0.45; ballVelocity.y *= -0.7; }
+           if (ball.position.distanceTo(new THREE.Vector3(0, 6.5, -26.5)) < 1.5 && ballVelocity.y < 0) {
+               score++; document.getElementById('score-val').innerText = score;
+               player.position.set(0, 0, 10); if (activeAbility === 'shaq') breakRim(); resetBall();
+           }
+           if (ball.position.z < -45 || ball.position.z > 45) resetBall();
+       }
+       renderer.render(scene, camera);
+   }
+
+
+   function performDunk() {
+       if(isDunking) return; isDunking = true;
+       player.position.y += 7; ball.position.set(0, 8, -26.5);
+       setTimeout(() => { player.position.y = 0; score++; player.position.set(0, 0, 10); isDunking = false; }, 600);
+   }
+
+
+   function createDefender() {
+       defender = new THREE.Group();
+       const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 1.3, 8, 16), new THREE.MeshStandardMaterial({ color: 0xef4444 }));
+       torso.position.y = 1.9; torso.castShadow = true; defender.add(torso);
+       const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), new THREE.MeshStandardMaterial({ color: 0x4a2c1a }));
+       head.position.y = 3.1; defender.add(head);
+       defender.position.set(0, 0, -5); scene.add(defender);
+   }
+
+
+   function createHoop() {
+       hoop = new THREE.Group();
+       const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 11), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+       pole.position.set(0, 5.5, -27.5); hoop.add(pole);
+       const rim = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.15, 12, 32), new THREE.MeshStandardMaterial({ color: 0xff4500 }));
+       rim.rotation.x = Math.PI/2; rim.position.set(0, 6.5, -26.5); rim.name = "rim"; hoop.add(rim);
+       scene.add(hoop);
+   }
+
+
+   function createBall() { ball = new THREE.Mesh(new THREE.SphereGeometry(0.45, 32, 32), new THREE.MeshStandardMaterial({ color: 0xf97316 })); ball.castShadow = true; scene.add(ball); }
+   function breakRim() { const rim = hoop.getObjectByName('rim'); rim.position.y = 1; document.body.classList.add('shaking'); setTimeout(() => { rim.position.y = 6.5; document.body.classList.remove('shaking'); }, 2000); }
+   function resetBall() { isHoldingBall = true; ballVelocity.set(0,0,0); }
+   function onWindowResize() { camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
+   function updateClock() { if(gameState !== 'menu') { timeLeft--; const m = Math.floor(timeLeft / 60); const s = timeLeft % 60; document.getElementById('game-clock').innerText = `${m}:${s < 10 ? '0' : ''}${s}`; } }
+   function startMode(m) { gameState = m; document.getElementById('main-menu').classList.add('hidden'); document.getElementById('game-hud').classList.remove('hidden'); document.getElementById('controls-hint').classList.remove('hidden'); }
+   window.setSize = (s) => { playerSize = s; player.scale.set(s,s,s); };
+   window.setDifficulty = (d) => { difficulty = d; };
+   window.buyAbility = (t) => { activeAbility = t; document.getElementById('active-ability').innerText = t.toUpperCase(); };
+   document.getElementById('quit-btn').addEventListener('click', () => { gameState = 'menu'; document.getElementById('main-menu').classList.remove('hidden'); document.getElementById('game-hud').classList.add('hidden'); });
+   document.getElementById('customize-btn').addEventListener('click', () => { document.getElementById('main-menu').classList.add('hidden'); document.getElementById('custom-menu').classList.remove('hidden'); });
+   document.getElementById('save-custom').addEventListener('click', () => { document.getElementById('custom-menu').classList.add('hidden'); document.getElementById('main-menu').classList.remove('hidden'); });
+</script>
 </body>
 </html>
+
