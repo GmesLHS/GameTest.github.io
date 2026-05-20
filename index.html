@@ -3,195 +3,529 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoop Star Prototype</title>
+    <title>Street Hoops 3D: First Person</title>
     <style>
-        body { margin: 0; background: #1a1a1a; color: white; font-family: sans-serif; text-align: center; }
-        #game-container { display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .controls { margin: 10px; background: #2a2a2a; padding: 15px; border-radius: 8px; }
-        canvas { background: #d2a679; border: 4px solid #8a5a36; border-radius: 4px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        select, input, button { padding: 8px; margin: 5px; border-radius: 4px; border: none; }
-        button { background: #ff6600; color: white; font-weight: bold; cursor: pointer; }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000;
+            color: #fff;
+        }
+
+        /* UI Overlays */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 15, 15, 0.95);
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+
+        .panel {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid #ff6600;
+            box-shadow: 0 0 30px rgba(255, 102, 0, 0.3);
+            text-align: center;
+            min-width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        h1 { color: #ff6600; margin: 0 0 10px 0; font-size: 2.5rem; letter-spacing: 2px; }
+        label { font-weight: bold; font-size: 0.9rem; color: #aaa; text-align: left; }
+        input, select, button {
+            padding: 12px;
+            background: #2d2d2d;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        input:focus, select:focus { outline: none; border-color: #ff6600; }
+        button {
+            background: #ff6600;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.2s;
+        }
         button:hover { background: #e05500; }
-        #yt-player { display: none; }
+
+        /* Hidden Class */
+        .hidden { opacity: 0; pointer-events: none; }
+
+        /* Heads Up Display (HUD) */
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 5;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        .hud-card { background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 6px; }
+
+        /* Crosshair for FP Shooting */
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        #interaction-prompt {
+            position: absolute;
+            bottom: 25%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            padding: 10px 20px;
+            border-radius: 4px;
+            border: 1px solid #ff6600;
+            pointer-events: none;
+            display: none;
+            z-index: 5;
+        }
     </style>
+
+    <!-- Include Three.js for 3D engine capabilities -->
+    <script src="https://cloudflare.com"></script>
 </head>
 <body>
 
-    <div id="game-container">
-        <h1>🏀 Hoop Star Sandbox</h1>
-        
-        <!-- Customization & Settings -->
-        <div class="controls">
-            <label>Jersey: <input type="color" id="jerseyColor" value="#ff0000"></label>
-            <label>Kicks: 
-                <select id="shoeModel">
-                    <option value="#ffffff">Air Force Proto (White)</option>
-                    <option value="#black">Proto 1s (Black)</option>
-                    <option value="#blue">Jumpman Zoom (Blue)</option>
-                    <option value="#neon">Future Volt (Neon)</option>
-                </select>
-            </label>
-            <label>Mode: 
-                <select id="gameMode">
-                    <option value="half">Half Court</option>
-                    <option value="full">Full Court</option>
-                </select>
-            </label>
-        </div>
-
-        <!-- Music Player -->
-        <div class="controls">
-            <input type="text" id="ytUrl" placeholder="Paste YouTube Video URL here">
-            <button onclick="loadMusic()">🎵 Play Court Beats</button>
-        </div>
-
-        <!-- Court Canvas -->
-        <canvas id="court" width="800" height="400"></canvas>
-        <p>Controls: Use <b>Arrow Keys</b> or <b>WASD</b> to move your player around the court.</p>
+    <!-- HUD Overlay -->
+    <div id="hud">
+        <div class="hud-card" id="hud-user">PLAYER: User</div>
+        <div class="hud-card" style="color:#ff6600;" id="hud-status">STANDBY</div>
+        <div class="hud-card" id="hud-score">SCORE: 0</div>
     </div>
 
-    <!-- Hidden YouTube iframe API container -->
-    <div id="yt-player"></div>
+    <!-- First Person Reticle -->
+    <div id="crosshair"></div>
+    <div id="interaction-prompt">Press [C] to Pick Up Ball</div>
 
-    <script>
-        // Game Engine Setup
-        const canvas = document.getElementById('court');
-        const ctx = canvas.getContext('2d');
-        
-        let player = { x: 400, y: 300, radius: 15, speed: 5 };
-        let keys = {};
-
-        // Inputs
-        const jerseyInput = document.getElementById('jerseyColor');
-        const shoeInput = document.getElementById('shoeModel');
-        const modeInput = document.getElementById('gameMode');
-
-        // Track Keyboard
-        window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
-        window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
-
-        function update() {
-            // Movement Logic
-            if (keys['arrowup'] || keys['w']) player.y -= player.speed;
-            if (keys['arrowdown'] || keys['s']) player.y += player.speed;
-            if (keys['arrowleft'] || keys['a']) player.x -= player.speed;
-            if (keys['arrowright'] || keys['d']) player.x += player.speed;
-
-            // Boundary Collisions
-            if (player.x < player.radius) player.x = player.radius;
-            if (player.x > canvas.width - player.radius) player.x = canvas.width - player.radius;
-            if (player.y < player.radius) player.y = player.radius;
-            if (player.y > canvas.height - player.radius) player.y = canvas.height - player.radius;
-        }
-
-        function draw() {
-            // Clear Court
-            ctx.fillStyle = '#d2a679'; 
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Draw Court Lines based on Mode
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 4;
+    <!-- Home Screen -->
+    <div id="home-screen" class="overlay">
+        <div class="panel">
+            <h1>STREET HOOPS 3D</h1>
+            <p style="color:#777; margin:0;">First Person Online Playground</p>
             
-            if (modeInput.value === 'full') {
-                // Center Line
-                ctx.beginPath();
-                ctx.moveTo(canvas.width / 2, 0);
-                ctx.lineTo(canvas.width / 2, canvas.height);
-                ctx.stroke();
-                // Center Circle
-                ctx.beginPath();
-                ctx.arc(canvas.width / 2, canvas.height / 2, 50, 0, Math.PI * 2);
-                ctx.stroke();
-            } else {
-                // Half Court Boundary line
-                ctx.beginPath();
-                ctx.moveTo(10, 0);
-                ctx.lineTo(10, canvas.height);
-                ctx.stroke();
-            }
+            <input type="text" id="username-input" value="BallerX" placeholder="Enter Username">
+            
+            <label>Select Kickz</label>
+            <select id="shoe-select">
+                <option value="0xff0000">Air Jordan 1 Retro (Bred)</option>
+                <option value="0xffffff">Air Force 1 Low (Whiteout)</option>
+                <option value="0xff6600">LeBron 20 (Trinity)</option>
+                <option value="0x7000ff">Kobe 6 Protro (Mambacita)</option>
+                <option value="0x99ff00">MB.03 (LaFrance)</option>
+            </select>
 
-            // Draw Three-Point Arc (Right Side Hoop)
-            ctx.beginPath();
-            ctx.arc(canvas.width, canvas.height / 2, 120, Math.PI * 0.5, Math.PI * 1.5);
-            ctx.stroke();
+            <button onclick="startGame()">Enter Playground</button>
+            <button style="background:#444;" onclick="toggleMenu('settings-screen', true)">Settings</button>
+        </div>
+    </div>
 
-            // Draw Key/Paint
-            ctx.fillStyle = '#bc8f60';
-            ctx.fillRect(canvas.width - 100, (canvas.height/2) - 50, 100, 100);
-            ctx.strokeRect(canvas.width - 100, (canvas.height/2) - 50, 100, 100);
+    <!-- Settings Screen -->
+    <div id="settings-screen" class="overlay hidden">
+        <div class="panel">
+            <h2>Game Settings</h2>
+            
+            <div style="text-align:left;">
+                <label for="brightness-slider">Court Brightness</label>
+                <input type="range" id="brightness-slider" min="0.2" max="2.0" step="0.1" value="1.0" style="width:100%;">
+            </div>
 
-            // Draw Backboard and Hoop
-            ctx.fillStyle = '#000';
-            ctx.fillRect(canvas.width - 15, (canvas.height/2) - 30, 5, 60);
-            ctx.beginPath();
-            ctx.strokeStyle = '#ff6600';
-            ctx.arc(canvas.width - 25, canvas.height / 2, 12, 0, Math.PI * 2);
-            ctx.stroke();
+            <div style="text-align:left;">
+                <label>Music Link (YouTube URL)</label>
+                <input type="text" id="music-url" placeholder="https://youtube.com...">
+            </div>
 
-            // Draw Player Customized Shoes (Left/Right rectangles under player)
-            ctx.fillStyle = shoeInput.value;
-            ctx.fillRect(player.x - 12, player.y + 8, 8, 6);
-            ctx.fillRect(player.x + 4, player.y + 8, 8, 6);
+            <button onclick="applySettings()">Save & Back</button>
+        </div>
+    </div>
 
-            // Draw Player Body (Jersey)
-            ctx.beginPath();
-            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-            ctx.fillStyle = jerseyInput.value;
-            ctx.fill();
-            ctx.strokeStyle = '#000000';
-            ctx.stroke();
+    <!-- JavaScript Game Engine Logic -->
+    <script>
+        // --- Core Framework Objects ---
+        let scene, camera, renderer, ambientLight, directionalLight;
+        let username = "BallerX";
+        let score = 0;
+        let isPlaying = false;
 
-            // Draw Player Head
-            ctx.beginPath();
-            ctx.arc(player.x, player.y, player.radius * 0.6, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffdbac';
-            ctx.fill();
-            ctx.stroke();
-        }
+        // Physics/Control state arrays
+        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+        let playerVelocity = new THREE.Vector3();
+        let playerDirection = new THREE.Vector3();
+        let isGrounded = true;
 
-        function gameLoop() {
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
+        // Game specific structural items
+        let basketball, courtFloor, hoopRim;
+        let ballPhysics = {
+            velocity: new THREE.Vector3(0, 0, 0),
+            isHeld: true,
+            radius: 0.4,
+            gravity: -0.015,
+            bounciness: 0.72
+        };
 
-        // YouTube Audio Streaming Logic
-        let ytPlayer;
-        function onYouTubeIframeAPIReady() {
-            ytPlayer = new YT.Player('yt-player', {
-                height: '0',
-                width: '0',
-                videoId: '',
-                playerVars: { 'autoplay': 1, 'controls': 0 }
+        // Camera control variables 
+        let yaw = 0, pitch = 0;
+        const lookSpeed = 0.002;
+
+        // Crowd animations tracking array
+        let crowdMembers = [];
+
+        // --- Init Environment Setup ---
+        function initEngine() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a14);
+            scene.fog = new THREE.FogExp2(0x0a0a14, 0.015);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 2, 12); // First Person viewpoint height
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            document.body.appendChild(renderer.domElement);
+
+            // Illumination Configurations
+            ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+            scene.add(ambientLight);
+
+            directionalLight = new THREE.DirectionalLight(0xffaa66, 0.8);
+            directionalLight.position.set(10, 20, 10);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+
+            buildBasketballCourt();
+            buildCrowds();
+            spawnBasketball();
+
+            // Hook Event Actions
+            window.addEventListener('resize', onWindowResize);
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+            document.addEventListener('mousemove', onMouseMove);
+            
+            // Pointer lock lock down for absolute First Person experience
+            renderer.domElement.addEventListener('click', () => {
+                if(isPlaying) renderer.domElement.requestPointerLock();
             });
         }
 
-        function loadMusic() {
-            const url = document.getElementById('ytUrl').value;
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
+        // --- Build Authentic Court Map & Stadium Elements ---
+        function buildBasketballCourt() {
+            // Hardwood Floor Geometry
+            const courtGeo = new THREE.BoxGeometry(28, 0.2, 15);
             
-            if (match && match[2].length === 11) {
-                const videoId = match[2];
-                if (ytPlayer && ytPlayer.loadVideoById) {
-                    ytPlayer.loadVideoById(videoId);
-                } else {
-                    alert("Player preparing. Please try again in a second.");
-                }
-            } else {
-                alert("Please enter a valid YouTube URL.");
+            // Procedural Canvas wood planks generation texture
+            const canvas = document.createElement('canvas');
+            canvas.width = 256; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#d2a06a'; ctx.fillRect(0,0,256,256);
+            ctx.fillStyle = '#b5804c';
+            for(let i=0; i<256; i+=16) { ctx.fillRect(0, i, 256, 2); }
+            
+            const courtTexture = new THREE.CanvasTexture(canvas);
+            const courtMat = new THREE.MeshStandardMaterial({ map: courtTexture, roughness: 0.3 });
+            courtFloor = new THREE.Mesh(courtGeo, courtMat);
+            courtFloor.position.y = -0.1;
+            courtFloor.receiveShadow = true;
+            scene.add(courtFloor);
+
+            // Court Line Markings overlay
+            const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            
+            const centerCircleGeo = new THREE.RingGeometry(2, 2.1, 32);
+            const centerCircle = new THREE.Mesh(centerCircleGeo, lineMat);
+            centerCircle.rotation.x = -Math.PI / 2;
+            centerCircle.position.y = 0.01;
+            scene.add(centerCircle);
+
+            // Perimeter borders
+            const outLineGeo = new THREE.BoxGeometry(28.2, 0.02, 15.2);
+            const outLine = new THREE.Mesh(outLineGeo, new THREE.MeshBasicMaterial({color: 0xff6600, wireframe: true}));
+            outLine.position.y = 0.01;
+            scene.add(outLine);
+
+            // The Basketball Goal Backboard and Hoop Rim structure
+            const postGeo = new THREE.CylinderGeometry(0.1, 0.1, 5);
+            const postMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+            const post = new THREE.Mesh(postGeo, postMat);
+            post.position.set(13.5, 2.5, 0);
+            scene.add(post);
+
+            const boardGeo = new THREE.BoxGeometry(0.2, 1.8, 2.8);
+            const boardMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 });
+            const backboard = new THREE.Mesh(boardGeo, boardMat);
+            backboard.position.set(13.3, 4.2, 0);
+            scene.add(backboard);
+
+            const rimGeo = new THREE.TorusGeometry(0.5, 0.04, 8, 24);
+            const rimMat = new THREE.MeshBasicMaterial({ color: 0xff4500 });
+            hoopRim = new THREE.Mesh(rimGeo, rimMat);
+            hoopRim.rotation.x = Math.PI / 2;
+            hoopRim.position.set(12.4, 3.6, 0); // Regulation target coordinates
+            scene.add(hoopRim);
+        }
+
+        // --- Build Jumping Crowds ---
+        function buildCrowds() {
+            const crowdContainer = new THREE.Group();
+            // Colors for random jerseys in stand lines
+            const fanColors = [0xff3333, 0x3333ff, 0x33ff33, 0xffff33, 0xff00ff];
+
+            // Rear dynamic bleacher line creation loop
+            for (let x = -13; x <= 13; x += 1.5) {
+                const color = fanColors[Math.floor(Math.random() * fanColors.length)];
+                const fanGeo = new THREE.CylinderGeometry(0.3, 0.3, 1.2, 8);
+                const fanMat = new THREE.MeshStandardMaterial({ color: color });
+                const fan = new THREE.Mesh(fanGeo, fanMat);
+                
+                // Positioned behind boundary lines
+                fan.position.set(x, 0.6, -8);
+                
+                // Custom tracking property config for loop bounce
+                fan.userData = { 
+                    jumpPhase: Math.random() * Math.PI, 
+                    jumpSpeed: 0.05 + Math.random() * 0.08 
+                };
+                
+                crowdContainer.add(fan);
+                crowdMembers.push(fan);
+            }
+            scene.add(crowdContainer);
+        }
+
+        // --- Item Asset Constructors ---
+        function spawnBasketball() {
+            const ballGeo = new THREE.SphereGeometry(ballPhysics.radius, 16, 16);
+            const ballMat = new THREE.MeshStandardMaterial({ color: 0xe65c00, roughness: 0.6 });
+            basketball = new THREE.Mesh(ballGeo, ballMat);
+            basketball.castShadow = true;
+            scene.add(basketball);
+        }
+
+        // --- UI Operations ---
+        function toggleMenu(id, open) {
+            document.getElementById(id).classList.toggle('hidden', !open);
+        }
+
+        function startGame() {
+            username = document.getElementById('username-input').value || "BallerX";
+            document.getElementById('hud-user').innerText = `PLAYER: ${username.toUpperCase()}`;
+            toggleMenu('home-screen', false);
+            
+            document.getElementById('hud-status').innerText = "LIVE PLAYGROUND";
+            isPlaying = true;
+            renderer.domElement.requestPointerLock();
+        }
+
+        function applySettings() {
+            const brightVal = document.getElementById('brightness-slider').value;
+            ambientLight.intensity = parseFloat(brightVal);
+            toggleMenu('settings-screen', false);
+            toggleMenu('home-screen', true);
+        }
+
+        // --- Input Controls ---
+        function onKeyDown(e) {
+            switch (e.code) {
+                case 'KeyW': case 'ArrowUp': moveForward = true; break;
+                case 'KeyS': case 'ArrowDown': moveBackward = true; break;
+                case 'KeyA': case 'ArrowLeft': moveLeft = true; break;
+                case 'KeyD': case 'ArrowRight': moveRight = true; break;
+                case 'Space': 
+                    if (ballPhysics.isHeld && isPlaying) {
+                        shootBall();
+                    } else if (isGrounded && isPlaying) {
+                        playerVelocity.y = 0.25; // Vertical jump impulse
+                        isGrounded = false;
+                    }
+                    break;
+                case 'KeyC':
+                    // Interaction radius pickup command trigger
+                    if (!ballPhysics.isHeld) {
+                        let dist = camera.position.distanceTo(basketball.position);
+                        if(dist < 3.0) {
+                            ballPhysics.isHeld = true;
+                            document.getElementById('interaction-prompt').style.display = 'none';
+                        }
+                    }
+                    break;
+                case 'Escape':
+                    isPlaying = false;
+                    toggleMenu('home-screen', true);
+                    break;
             }
         }
 
-        // Load YouTube API script dynamically
-        const tag = document.createElement('script');
-        tag.src = "https://youtube.com";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        function onKeyUp(e) {
+            switch (e.code) {
+                case 'KeyW': case 'ArrowUp': moveForward = false; break;
+                case 'KeyS': case 'ArrowDown': moveBackward = false; break;
+                case 'KeyA': case 'ArrowLeft': moveLeft = false; break;
+                case 'KeyD': case 'ArrowRight': moveRight = false; break;
+            }
+        }
 
-        // Start Game
-        gameLoop();
+        function onMouseMove(e) {
+            if (document.pointerLockElement !== renderer.domElement) return;
+
+            yaw -= e.movementX * lookSpeed;
+            pitch -= e.movementY * lookSpeed;
+
+            // Constrain head pitch extension limits
+            pitch = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, pitch));
+
+            camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
+        }
+
+        // --- Engine Physics Processing & Motion Loops ---
+        function shootBall() {
+            ballPhysics.isHeld = false;
+            
+            // Derive directional force vector based on point orientation profile
+            const launchVector = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+            launchVector.normalize();
+            
+            // Push vector speed factors forward and up into basket arc trajectory
+            ballPhysics.velocity.copy(launchVector).multiplyScalar(0.35);
+            ballPhysics.velocity.y += 0.15; 
+        }
+
+        function updatePhysics() {
+            if (!isPlaying) return;
+
+            // --- First Person Movement Actions ---
+            playerVelocity.x -= playerVelocity.x * 0.1;
+            playerVelocity.z -= playerVelocity.z * 0.1;
+            if(!isGrounded) playerVelocity.y -= 0.01; // Gravity on player body profile
+
+            playerDirection.z = Number(moveForward) - Number(moveBackward);
+            playerDirection.x = Number(moveRight) - Number(moveLeft);
+            playerDirection.normalize();
+
+            // Calculate directional rotation adjustments natively
+            const camYawRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, yaw, 0));
+            
+            if (moveForward || moveBackward) {
+                const forwardMove = new THREE.Vector3(0, 0, -playerDirection.z).applyQuaternion(camYawRotation);
+                playerVelocity.add(forwardMove.multiplyScalar(0.02));
+            }
+            if (moveLeft || moveRight) {
+                const sideMove = new THREE.Vector3(playerDirection.x, 0, 0).applyQuaternion(camYawRotation);
+                playerVelocity.add(sideMove.multiplyScalar(0.02));
+            }
+
+            camera.position.add(playerVelocity);
+
+            // Floor Bounds constraints check
+            if (camera.position.y < 2.0) {
+                camera.position.y = 2.0;
+                playerVelocity.y = 0;
+                isGrounded = true;
+            }
+
+            // --- Ball Mechanics Context Execution ---
+            if (ballPhysics.isHeld) {
+                // Pin ball right out in front of the camera scope
+                const carryVector = new THREE.Vector3(0, -0.5, -1.8).applyQuaternion(camera.quaternion);
+                basketball.position.copy(camera.position).add(carryVector);
+                ballPhysics.velocity.set(0,0,0);
+            } else {
+                // Free Flight Ball Mechanics execution profile
+                ballPhysics.velocity.y += ballPhysics.gravity;
+                basketball.position.add(ballPhysics.velocity);
+
+                // Court floor impact surface calculation parameters
+                if (basketball.position.y < ballPhysics.radius) {
+                    basketball.position.y = ballPhysics.radius;
+                    ballPhysics.velocity.y = -ballPhysics.velocity.y * ballPhysics.bounciness;
+                    ballPhysics.velocity.x *= 0.98;
+                    ballPhysics.velocity.z *= 0.98;
+                }
+
+                // Check out-of-bounds wall constraints
+                if (Math.abs(basketball.position.x) > 14 || Math.abs(basketball.position.z) > 7.5) {
+                    ballPhysics.velocity.x *= -1;
+                    ballPhysics.velocity.z *= -1;
+                }
+
+                // Score check evaluation targeting 3D hoop rim volume boundary
+                let distanceToRim = basketball.position.distanceTo(hoopRim.position);
+                if (distanceToRim < 0.6 && ballPhysics.velocity.y < 0) {
+                    score += 2;
+                    document.getElementById('hud-score').innerText = `SCORE: ${score}`;
+                    document.getElementById('hud-status').innerText = "BUCKET!!";
+                    setTimeout(() => { document.getElementById('hud-status').innerText = "LIVE PLAYGROUND"; }, 1500);
+                    
+                    // Force clean reset drop directly down from net line
+                    basketball.position.set(12.4, 2.5, 0);
+                    ballPhysics.velocity.set(0, 0, 0);
+                }
+
+                // Pickup Prompt UI generation trigger
+                let distToUser = camera.position.distanceTo(basketball.position);
+                if (distToUser < 3.0) {
+                    document.getElementById('interaction-prompt').style.display = 'block';
+                } else {
+                    document.getElementById('interaction-prompt').style.display = 'none';
+                }
+            }
+
+            // --- Animate the Jumping Crowd ---
+            crowdMembers.forEach(fan => {
+                fan.userData.jumpPhase += fan.userData.jumpSpeed;
+                // Periodic wave equation loops execution path
+                fan.position.y = 0.6 + Math.abs(Math.sin(fan.userData.jumpPhase)) * 0.5;
+            });
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- Standard Render System Execution Tick Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+            updatePhysics();
+            renderer.render(scene, camera);
+        }
+
+        // Run framework engine directly on document execution ready path
+        initEngine();
+        animate();
     </script>
 </body>
 </html>
