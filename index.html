@@ -29,7 +29,9 @@
             justify-content: center;
             background: rgba(15, 15, 15, 0.95);
             z-index: 10;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.2s ease, visibility 0.2s;
+            visibility: visible;
+            opacity: 1;
         }
 
         .panel {
@@ -67,8 +69,12 @@
         }
         button:hover { background: #e05500; }
 
-        /* Hidden Class */
-        .hidden { opacity: 0; pointer-events: none; }
+        /* Hidden Utility Class */
+        .hidden { 
+            opacity: 0 !important; 
+            visibility: hidden !important; 
+            pointer-events: none !important; 
+        }
 
         /* Heads Up Display (HUD) */
         #hud {
@@ -148,11 +154,11 @@
             </select>
 
             <button onclick="startGame()">Enter Playground</button>
-            <button style="background:#444;" onclick="toggleMenu('settings-screen', true)">Settings</button>
+            <button style="background:#444;" onclick="openSettings()">Settings</button>
         </div>
     </div>
 
-    <!-- Settings Screen -->
+    <!-- Settings Screen (Starts Hidden) -->
     <div id="settings-screen" class="overlay hidden">
         <div class="panel">
             <h2>Game Settings</h2>
@@ -243,10 +249,8 @@
 
         // --- Build Authentic Court Map & Stadium Elements ---
         function buildBasketballCourt() {
-            // Hardwood Floor Geometry
             const courtGeo = new THREE.BoxGeometry(28, 0.2, 15);
             
-            // Procedural Canvas wood planks generation texture
             const canvas = document.createElement('canvas');
             canvas.width = 256; canvas.height = 256;
             const ctx = canvas.getContext('2d');
@@ -261,7 +265,6 @@
             courtFloor.receiveShadow = true;
             scene.add(courtFloor);
 
-            // Court Line Markings overlay
             const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
             
             const centerCircleGeo = new THREE.RingGeometry(2, 2.1, 32);
@@ -270,13 +273,11 @@
             centerCircle.position.y = 0.01;
             scene.add(centerCircle);
 
-            // Perimeter borders
             const outLineGeo = new THREE.BoxGeometry(28.2, 0.02, 15.2);
             const outLine = new THREE.Mesh(outLineGeo, new THREE.MeshBasicMaterial({color: 0xff6600, wireframe: true}));
             outLine.position.y = 0.01;
             scene.add(outLine);
 
-            // The Basketball Goal Backboard and Hoop Rim structure
             const postGeo = new THREE.CylinderGeometry(0.1, 0.1, 5);
             const postMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
             const post = new THREE.Mesh(postGeo, postMat);
@@ -293,27 +294,23 @@
             const rimMat = new THREE.MeshBasicMaterial({ color: 0xff4500 });
             hoopRim = new THREE.Mesh(rimGeo, rimMat);
             hoopRim.rotation.x = Math.PI / 2;
-            hoopRim.position.set(12.4, 3.6, 0); // Regulation target coordinates
+            hoopRim.position.set(12.4, 3.6, 0);
             scene.add(hoopRim);
         }
 
         // --- Build Jumping Crowds ---
         function buildCrowds() {
             const crowdContainer = new THREE.Group();
-            // Colors for random jerseys in stand lines
             const fanColors = [0xff3333, 0x3333ff, 0x33ff33, 0xffff33, 0xff00ff];
 
-            // Rear dynamic bleacher line creation loop
             for (let x = -13; x <= 13; x += 1.5) {
                 const color = fanColors[Math.floor(Math.random() * fanColors.length)];
                 const fanGeo = new THREE.CylinderGeometry(0.3, 0.3, 1.2, 8);
                 const fanMat = new THREE.MeshStandardMaterial({ color: color });
                 const fan = new THREE.Mesh(fanGeo, fanMat);
                 
-                // Positioned behind boundary lines
                 fan.position.set(x, 0.6, -8);
                 
-                // Custom tracking property config for loop bounce
                 fan.userData = { 
                     jumpPhase: Math.random() * Math.PI, 
                     jumpSpeed: 0.05 + Math.random() * 0.08 
@@ -334,26 +331,30 @@
             scene.add(basketball);
         }
 
-        // --- UI Operations ---
-        function toggleMenu(id, open) {
-            document.getElementById(id).classList.toggle('hidden', !open);
+        // --- UI Panel Navigation Updates ---
+        function openSettings() {
+            document.getElementById('home-screen').classList.add('hidden');
+            document.getElementById('settings-screen').classList.remove('hidden');
+        }
+
+        function applySettings() {
+            // Adjust light states directly
+            const brightVal = document.getElementById('brightness-slider').value;
+            ambientLight.intensity = parseFloat(brightVal);
+            
+            // Switch panels clean
+            document.getElementById('settings-screen').classList.add('hidden');
+            document.getElementById('home-screen').classList.remove('hidden');
         }
 
         function startGame() {
             username = document.getElementById('username-input').value || "BallerX";
             document.getElementById('hud-user').innerText = `PLAYER: ${username.toUpperCase()}`;
-            toggleMenu('home-screen', false);
+            document.getElementById('home-screen').classList.add('hidden');
             
             document.getElementById('hud-status').innerText = "LIVE PLAYGROUND";
             isPlaying = true;
             renderer.domElement.requestPointerLock();
-        }
-
-        function applySettings() {
-            const brightVal = document.getElementById('brightness-slider').value;
-            ambientLight.intensity = parseFloat(brightVal);
-            toggleMenu('settings-screen', false);
-            toggleMenu('home-screen', true);
         }
 
         // --- Input Controls ---
@@ -367,12 +368,11 @@
                     if (ballPhysics.isHeld && isPlaying) {
                         shootBall();
                     } else if (isGrounded && isPlaying) {
-                        playerVelocity.y = 0.25; // Vertical jump impulse
+                        playerVelocity.y = 0.25;
                         isGrounded = false;
                     }
                     break;
                 case 'KeyC':
-                    // Interaction radius pickup command trigger
                     if (!ballPhysics.isHeld) {
                         let dist = camera.position.distanceTo(basketball.position);
                         if(dist < 3.0) {
@@ -383,7 +383,7 @@
                     break;
                 case 'Escape':
                     isPlaying = false;
-                    toggleMenu('home-screen', true);
+                    document.getElementById('home-screen').classList.remove('hidden');
                     break;
             }
         }
@@ -402,8 +402,6 @@
 
             yaw -= e.movementX * lookSpeed;
             pitch -= e.movementY * lookSpeed;
-
-            // Constrain head pitch extension limits
             pitch = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, pitch));
 
             camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
@@ -412,12 +410,9 @@
         // --- Engine Physics Processing & Motion Loops ---
         function shootBall() {
             ballPhysics.isHeld = false;
-            
-            // Derive directional force vector based on point orientation profile
             const launchVector = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
             launchVector.normalize();
             
-            // Push vector speed factors forward and up into basket arc trajectory
             ballPhysics.velocity.copy(launchVector).multiplyScalar(0.35);
             ballPhysics.velocity.y += 0.15; 
         }
@@ -428,13 +423,12 @@
             // --- First Person Movement Actions ---
             playerVelocity.x -= playerVelocity.x * 0.1;
             playerVelocity.z -= playerVelocity.z * 0.1;
-            if(!isGrounded) playerVelocity.y -= 0.01; // Gravity on player body profile
+            if(!isGrounded) playerVelocity.y -= 0.01;
 
             playerDirection.z = Number(moveForward) - Number(moveBackward);
             playerDirection.x = Number(moveRight) - Number(moveLeft);
             playerDirection.normalize();
 
-            // Calculate directional rotation adjustments natively
             const camYawRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, yaw, 0));
             
             if (moveForward || moveBackward) {
@@ -448,25 +442,21 @@
 
             camera.position.add(playerVelocity);
 
-            // Floor Bounds constraints check
             if (camera.position.y < 2.0) {
                 camera.position.y = 2.0;
                 playerVelocity.y = 0;
                 isGrounded = true;
             }
 
-            // --- Ball Mechanics Context Execution ---
+            // --- Ball Mechanics Context ---
             if (ballPhysics.isHeld) {
-                // Pin ball right out in front of the camera scope
                 const carryVector = new THREE.Vector3(0, -0.5, -1.8).applyQuaternion(camera.quaternion);
                 basketball.position.copy(camera.position).add(carryVector);
                 ballPhysics.velocity.set(0,0,0);
             } else {
-                // Free Flight Ball Mechanics execution profile
                 ballPhysics.velocity.y += ballPhysics.gravity;
                 basketball.position.add(ballPhysics.velocity);
 
-                // Court floor impact surface calculation parameters
                 if (basketball.position.y < ballPhysics.radius) {
                     basketball.position.y = ballPhysics.radius;
                     ballPhysics.velocity.y = -ballPhysics.velocity.y * ballPhysics.bounciness;
@@ -474,13 +464,11 @@
                     ballPhysics.velocity.z *= 0.98;
                 }
 
-                // Check out-of-bounds wall constraints
                 if (Math.abs(basketball.position.x) > 14 || Math.abs(basketball.position.z) > 7.5) {
                     ballPhysics.velocity.x *= -1;
                     ballPhysics.velocity.z *= -1;
                 }
 
-                // Score check evaluation targeting 3D hoop rim volume boundary
                 let distanceToRim = basketball.position.distanceTo(hoopRim.position);
                 if (distanceToRim < 0.6 && ballPhysics.velocity.y < 0) {
                     score += 2;
@@ -488,12 +476,10 @@
                     document.getElementById('hud-status').innerText = "BUCKET!!";
                     setTimeout(() => { document.getElementById('hud-status').innerText = "LIVE PLAYGROUND"; }, 1500);
                     
-                    // Force clean reset drop directly down from net line
                     basketball.position.set(12.4, 2.5, 0);
                     ballPhysics.velocity.set(0, 0, 0);
                 }
 
-                // Pickup Prompt UI generation trigger
                 let distToUser = camera.position.distanceTo(basketball.position);
                 if (distToUser < 3.0) {
                     document.getElementById('interaction-prompt').style.display = 'block';
@@ -505,7 +491,6 @@
             // --- Animate the Jumping Crowd ---
             crowdMembers.forEach(fan => {
                 fan.userData.jumpPhase += fan.userData.jumpSpeed;
-                // Periodic wave equation loops execution path
                 fan.position.y = 0.6 + Math.abs(Math.sin(fan.userData.jumpPhase)) * 0.5;
             });
         }
@@ -516,14 +501,12 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // --- Standard Render System Execution Tick Loop ---
         function animate() {
             requestAnimationFrame(animate);
             updatePhysics();
             renderer.render(scene, camera);
         }
 
-        // Run framework engine directly on document execution ready path
         initEngine();
         animate();
     </script>
